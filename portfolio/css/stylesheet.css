@@ -1,0 +1,17 @@
+body{
+  font-family: 'Fredericka the Great', cursive;
+  color:black;
+  font-weight: 300;
+}
+.text-muted{
+  color: grey;
+}
+.text-thin{
+  font-weight: 100;
+}
+.title-super{
+  font-size: 60px;
+}
+.title-logo{
+  margin:auto;
+}
