@@ -14,7 +14,7 @@ forrest_gump = Movie("https://upload.wikimedia.org/wikipedia/en/6/67/Forrest_Gum
 
 jobs = Movie("https://upload.wikimedia.org/wikipedia/en/e/e0/Jobs_%28film%29.jpg",
              "https://www.youtube.com/watch?v=GMZcdVCArRo",
-             "Ashton Kutcher is Steve Jobs, the iconic Apple innovator and groundbreaking"
+             "Ashton Kutcher starts Steve Jobs, the iconic Apple innovator and groundbreaking"
              " entrepreneur. This inspiring and entertaining film chronicles Jobs' early"
              " days as a college dropout to his rise as the co-founder of Apple Computer "
              "Inc. and forced departure from the company. More than a decade later, Jobs "
