@@ -1,22 +1,31 @@
-body{
-  font-family: 'Fredericka the Great', cursive;
-  color:black;
-  font-weight: 300;
+body {
+    font-family: 'Fredericka the Great', cursive;
+    color: black;
+    font-weight: 300;
 }
-.text-muted{
-  color: grey;
+
+.text-muted {
+    color: grey;
 }
-.text-thin{
-  font-weight: 100;
+
+.text-thin {
+    font-weight: 100;
 }
-.title-super{
-  font-size: 60px;
+
+.title-super {
+    font-size: 60px;
 }
-.title-logo{
-  margin:auto;
-  margin-left: 10px
+
+.title-logo {
+    margin: auto;
+    margin-left: 10px;
 }
-.text-normal{
-  font-size: 20px;
-  margin:20px;
+
+.text-normal {
+    font-size: 20px;
+    margin: 20px;
+}
+
+.img-center {
+  margin:0 auto;
 }
