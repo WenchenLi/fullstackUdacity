@@ -1,8 +1,10 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
+{% block title %}Signup{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
 <form method="post">
   	<input type="text" name="text" value="{{text}}">
   	<input type="submit">
 </form>
-<!-- {% if text %}
-  {{text}}
-{% endif  %} -->
+{% endblock %}
