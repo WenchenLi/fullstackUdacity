@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Signup{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+  <h1>please signup</h1>
+  <h2>{{hint}}</h2>
+  <form method="post">
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            username
+          </td>
+          <td>
+            <input type="text" name="username" value="{{username}}">
+          </td>
+          <td>
+            {{hint_username}}
+          </td>
+
+        </tr>
+        <tr>
+          <td>
+            password
+          </td>
+          <td>
+            <input type="password" name="password" value="{{password}}">
+          </td>
+          <td>
+            {{hint_password}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            confirm
+          </td>
+          <td>
+            <input type="password" name="confirm" value="{{confirm}}">
+          </td>
+          <td>
+            {{hint_confirm}}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            email(optional)
+          </td>
+          <td>
+            <input type="text" name="email" value="{{email}}">
+          </td>
+          <td>
+            {{hint_email}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <input type="submit">
+  </form>
+{% endblock %}
