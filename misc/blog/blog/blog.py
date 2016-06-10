@@ -5,7 +5,7 @@ from string import letters
 import webapp2
 import jinja2
 
-# from google.appengine.ext import db
+from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -21,6 +21,12 @@ class BaseHandler(webapp2.RequestHandler):
 
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
+
+
+class Main(BaseHandler):
+    """docstring for Main"""
+    def get(self):
+        self.render("index.html")
 
 class Rot13(BaseHandler):
     def get(self):
@@ -82,11 +88,6 @@ class Signup(BaseHandler):
         else:
             self.redirect('/welcome?username=' + username)
 
-class Main(BaseHandler):
-    """docstring for Main"""
-    def get(self):
-        self.render("index.html")
-
 class Welcome(BaseHandler):
     def get(self):
         username = self.request.get('username')
@@ -95,7 +96,60 @@ class Welcome(BaseHandler):
         else:
             self.redirect('/signup')
 
+
+class BlogWrite(BaseHandler):
+
+    def get(self):
+        self.render("write.html")
+
+    def post(self):
+        have_error = False
+        title = self.request.get('title')
+        content = self.request.get('content')
+
+
+        params = dict(title = title,
+                      content = content)
+
+        if not title:
+            params['hint_title'] = "title is needed"
+            have_error = True
+
+        if not content:
+            params['hint_content'] = "no blog is without content right?"
+            have_error = True
+
+        if have_error:
+            self.render('write.html', **params)
+        else:
+            blog = Blog(title = title, content = content)
+            blog.put()
+            self.redirect('/blog/front')
+
+class BlogFront(BaseHandler):
+    def render_front(self):
+        blogs = db.GqlQuery("SELECT * FROM Blog "
+                            "ORDER BY created DESC ")
+        self.render("front.html",blogs = blogs)
+
+    def get(self):
+        self.render_front()
+
+    def write(self):
+        self.redirect("/blog/write")
+
+def blog_key(name = "defualt"):
+    return db.Key.from_path("blogs",name)
+    
+class Blog(db.Model):
+    title = db.StringProperty(required = True)
+    content = db.TextProperty(required = True)
+    created = db.DateTimeProperty(auto_now_add = True)
+    last_modified = db.DateTimeProperty(auto_now = True)
+
 app = webapp2.WSGIApplication([('/', Main),
+                                ('/blog/front', BlogFront),
+                                ('/blog/write', BlogWrite),
                                 ('/rot13', Rot13),
                                ('/signup', Signup),
                                ('/welcome', Welcome)],

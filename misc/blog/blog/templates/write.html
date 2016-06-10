@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Writing blog...{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+  <h1>Writing blog...</h1>
+  <form method="post">
+    <label>
+      <div>
+        title
+      </div>
+      <input type="text" name="title" value="{{title}}">
+      <div>{{hint_title}}</div>
+    </label>
+    <label>
+      <div>
+        content
+      </div>
+      <textarea  name="content" value="{{content}}">
+      </textarea>
+      <div>{{hint_content}}</div>
+    </label>
+    <input type="submit">
+  </form>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}blogs{% endblock %}
+{% block head %}
+{% endblock %}
+{% block content %}
+  <h1 align="center">blogs</h1>
+  {% for blog in blogs %}
+    <div align="center" class="blog">
+      <div  align="center" class="blog-title">
+        <h2>{{blog.title}}</h2>
+        <time>{{blog.created.strftime("%b %d, %Y")}}</time>
+      </div>
+      <hr>
+      <pre align="center" class="blog-content">
+        {{blog.content | safe }}
+      </pre>
+    </div>
+    {% endfor %}
+{% endblock %}
