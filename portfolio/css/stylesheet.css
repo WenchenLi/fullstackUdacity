@@ -33,3 +33,11 @@ body {
 .header-text-right{
   text-align: right;
 }
+
+.paragraph-text{
+  font-family: "Tahoma";
+}
+
+.iframe-border{
+  border:medium double rgb(255,255,255);
+}
