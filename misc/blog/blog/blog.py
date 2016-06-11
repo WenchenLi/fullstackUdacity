@@ -140,7 +140,7 @@ class BlogFront(BaseHandler):
 
 def blog_key(name = "defualt"):
     return db.Key.from_path("blogs",name)
-    
+
 class Blog(db.Model):
     title = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
