@@ -1,34 +1,68 @@
+"""
+blog with basic features:
+Site Usability:
+1. User is directed to login, logout, and signup pages as appropriate. E.g.,
+login page should have a link to signup page and vice-versa; logout page is
+only available to logged in user.
+2. Links to edit blog pages are available to users. Users editing a
+page can click on a link to cancel the edit and go back to viewing that page.
+3.Blog pages render properly. Templates are used to unify the site.
+
+Accounts and Security:
+1.Users are able to create accounts, login, and logout correctly.
+2.Existing users can revisit the site and log back in without having to
+recreate their accounts each time.
+3.Usernames are unique. Attempting to create a duplicate user results
+in an error message.
+4.Stored passwords are hashed. Passwords are appropriately checked during
+login. User cookie is set securely.
+
+Permissions:
+1.Logged out users are redirected to the login page when attempting
+to create, edit, delete, or like a blog post.
+2.Logged in users can create, edit, or delete blog posts they
+themselves have created.
+Users should only be able to like posts once and should not be
+able to like their own post.
+3. Only signed in users can post comments.Users can only edit
+and delete comments they themselves have made.
+"""
+
+import webapp2
+import jinja2
 import os
 import re
 import random
 import hashlib
 import hmac
+
 from string import letters
-
-import webapp2
-import jinja2
-
 from google.appengine.ext import db
 
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
-                               autoescape = True)
+from constant import *
 
-secret = 'fart'
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
+                               autoescape=True)
+
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
+
 def make_secure_val(val):
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
+
 
 def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
     if secure_val == make_secure_val(val):
         return val
 
+
 class BlogHandler(webapp2.RequestHandler):
+    """base handler for blog"""
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -40,6 +74,7 @@ class BlogHandler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kw))
 
     def set_secure_cookie(self, name, val):
+        #TODO set expiration
         cookie_val = make_secure_val(val)
         self.response.headers.add_header(
             'Set-Cookie',
@@ -60,20 +95,16 @@ class BlogHandler(webapp2.RequestHandler):
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
+
 def render_post(response, post):
     response.out.write('<b>' + post.subject + '</b><br>')
     response.out.write(post.content)
 
-class MainPage(BlogHandler):
-  def get(self):
-      self.write('Hello, Udacity!')
-
-
 ##### user stuff
-def make_salt(length = 5):
+def make_salt(length=5):
     return ''.join(random.choice(letters) for x in xrange(length))
 
-def make_pw_hash(name, pw, salt = None):
+def make_pw_hash(name, pw, salt=None):
     if not salt:
         salt = make_salt()
     h = hashlib.sha256(name + pw + salt).hexdigest()
@@ -83,17 +114,18 @@ def valid_pw(name, password, h):
     salt = h.split(',')[0]
     return h == make_pw_hash(name, password, salt)
 
-def users_key(group = 'default'):
+
+def users_key(group='default'):
     return db.Key.from_path('users', group)
 
 class User(db.Model):
-    name = db.StringProperty(required = True)
-    pw_hash = db.StringProperty(required = True)
+    name = db.StringProperty(required=True)
+    pw_hash = db.StringProperty(required=True)
     email = db.StringProperty()
 
     @classmethod
     def by_id(cls, uid):
-        return User.get_by_id(uid, parent = users_key())
+        return User.get_by_id(uid, parent=users_key())
 
     @classmethod
     def by_name(cls, name):
@@ -101,12 +133,12 @@ class User(db.Model):
         return u
 
     @classmethod
-    def register(cls, name, pw, email = None):
+    def register(cls, name, pw, email=None):
         pw_hash = make_pw_hash(name, pw)
-        return User(parent = users_key(),
-                    name = name,
-                    pw_hash = pw_hash,
-                    email = email)
+        return User(parent=users_key(),
+                    name=name,
+                    pw_hash=pw_hash,
+                    email=email)
 
     @classmethod
     def login(cls, name, pw):
@@ -116,26 +148,30 @@ class User(db.Model):
 
 
 ##### blog stuff
-
-def blog_key(name = 'default'):
+def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
 
+
 class Post(db.Model):
-    subject = db.StringProperty(required = True)
-    content = db.TextProperty(required = True)
-    created = db.DateTimeProperty(auto_now_add = True)
-    last_modified = db.DateTimeProperty(auto_now = True)
+    """posts database"""
+    subject = db.StringProperty(required=True)
+    content = db.TextProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
+    last_modified = db.DateTimeProperty(auto_now=True)
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p = self)
+        return render_str("post.html", p=self)
+
 
 class BlogFront(BlogHandler):
+    """blog frontpage"""
     def get(self):
-        posts = greetings = Post.all().order('-created')
-        self.render('front.html', posts = posts)
+        posts = Post.all().order('-created')
+        self.render('front.html', posts=posts)
 
 class PostPage(BlogHandler):
+    """page for read one post in detail"""
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
@@ -144,9 +180,10 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        self.render("permalink.html", post = post)
+        self.render("permalink.html", post=post)
 
 class NewPost(BlogHandler):
+    """page for write new post"""
     def get(self):
         if self.user:
             self.render("newpost.html")
@@ -161,41 +198,27 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(parent = blog_key(), subject = subject, content = content)
+            p = Post(parent=blog_key(), subject=subject, content=content)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
             error = "subject and content, please!"
-            self.render("newpost.html", subject=subject, content=content, error=error)
-
-
-###### Unit 2 HW's
-class Rot13(BlogHandler):
-    def get(self):
-        self.render('rot13-form.html')
-
-    def post(self):
-        rot13 = ''
-        text = self.request.get('text')
-        if text:
-            rot13 = text.encode('rot13')
-
-        self.render('rot13-form.html', text = rot13)
+            self.render("newpost.html", subject=subject,
+                            content=content, error=error)
 
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
     return username and USER_RE.match(username)
-
 PASS_RE = re.compile(r"^.{3,20}$")
 def valid_password(password):
     return password and PASS_RE.match(password)
-
-EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
+EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
 
 class Signup(BlogHandler):
+    """general purpose signup page without done implemented"""
     def get(self):
         self.render("signup-form.html")
 
@@ -206,8 +229,8 @@ class Signup(BlogHandler):
         self.verify = self.request.get('verify')
         self.email = self.request.get('email')
 
-        params = dict(username = self.username,
-                      email = self.email)
+        params = dict(username=self.username,
+                      email=self.email)
 
         if not valid_username(self.username):
             params['error_username'] = "That's not a valid username."
@@ -232,17 +255,14 @@ class Signup(BlogHandler):
     def done(self, *a, **kw):
         raise NotImplementedError
 
-class Unit2Signup(Signup):
-    def done(self):
-        self.redirect('/unit2/welcome?username=' + self.username)
-
 class Register(Signup):
+    """one inheritence of Signup"""
     def done(self):
-        #make sure the user doesn't already exist
+        # make sure the user doesn't already exist
         u = User.by_name(self.username)
         if u:
             msg = 'That user already exists.'
-            self.render('signup-form.html', error_username = msg)
+            self.render('signup-form.html', error_username=msg)
         else:
             u = User.register(self.username, self.password, self.email)
             u.put()
@@ -250,7 +270,9 @@ class Register(Signup):
             self.login(u)
             self.redirect('/blog')
 
+
 class Login(BlogHandler):
+    """page login user"""
     def get(self):
         self.render('login-form.html')
 
@@ -264,38 +286,31 @@ class Login(BlogHandler):
             self.redirect('/blog')
         else:
             msg = 'Invalid login'
-            self.render('login-form.html', error = msg)
+            self.render('login-form.html', error=msg)
+
 
 class Logout(BlogHandler):
+    """logout handler"""
     def get(self):
         self.logout()
         self.redirect('/blog')
 
-class Unit3Welcome(BlogHandler):
+
+class Welcome(BlogHandler):
+    """welcome/dashboard once user login"""
     def get(self):
         if self.user:
-            self.render('welcome.html', username = self.user.name)
+            self.render('welcome.html', username=self.user.name)
         else:
             self.redirect('/signup')
 
-class Welcome(BlogHandler):
-    def get(self):
-        username = self.request.get('username')
-        if valid_username(username):
-            self.render('welcome.html', username = username)
-        else:
-            self.redirect('/unit2/signup')
 
-app = webapp2.WSGIApplication([('/', MainPage),
-                               ('/unit2/rot13', Rot13),
-                               ('/unit2/signup', Unit2Signup),
-                               ('/unit2/welcome', Welcome),
+app = webapp2.WSGIApplication([('/', Register),  # TODO a good design let unsign up user have a peek
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/newpost', NewPost),
                                ('/signup', Register),
                                ('/login', Login),
-                               ('/logout', Logout),
-                               ('/unit3/welcome', Unit3Welcome),
+                               ('/logout', Logout)
                                ],
                               debug=True)
