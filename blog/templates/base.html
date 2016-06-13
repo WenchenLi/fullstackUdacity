@@ -3,17 +3,29 @@
 <head>
   <link type="text/css" rel="stylesheet" href="/static/main.css" />
 
-  <title>Blog</title>
+  <title>{{title}}</title>
 </head>
 
 <body>
   <a href="/blog" class="main-title">
-    Blog
+    {{title}}
   </a>
 
   <div class="login-area">
     {% if user %}
       {{user.name}} (<a class="login-link" href="/logout">logout</a>)
+    {% else %}
+      <a class="login-link" href="/login">login</a>
+      |
+      <a class="login-link" href="/signup">signup</a>
+    {% endif %}
+  </div>
+
+  <div class="dashboard" align="center">
+    {% if user %}
+      <a class="newpost-link" href="/blog/newpost">NewPost</a>
+      <a class="editpost" href="/blog/editpost">EditPost</a>
+
     {% else %}
       <a class="login-link" href="/login">login</a>
       |

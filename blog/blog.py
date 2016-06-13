@@ -27,54 +27,30 @@ able to like their own post.
 3. Only signed in users can post comments.Users can only edit
 and delete comments they themselves have made.
 """
+#TODO featuress delete own posts,edit own posts,like
+#TODO comments(like posts without title) with edit and delelte
+#TODO associate posts with user info like name
+#TODO set expiration for user cookie
 
 import webapp2
-import jinja2
-import os
-import re
-import random
-import hashlib
-import hmac
 
-from string import letters
-from google.appengine.ext import db
-
-from constant import *
-
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
-                               autoescape=True)
-
-
-def render_str(template, **params):
-    t = jinja_env.get_template(template)
-    return t.render(params)
-
-
-def make_secure_val(val):
-    return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
-
-
-def check_secure_val(secure_val):
-    val = secure_val.split('|')[0]
-    if secure_val == make_secure_val(val):
-        return val
-
+from template_setup import *
+from database import *
+from regexp import *
 
 class BlogHandler(webapp2.RequestHandler):
-    """base handler for blog"""
+    """base handler"""
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
     def render_str(self, template, **params):
         params['user'] = self.user
-        return render_str(template, **params)
+        return template_render_str(template, **params)
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
     def set_secure_cookie(self, name, val):
-        #TODO set expiration
         cookie_val = make_secure_val(val)
         self.response.headers.add_header(
             'Set-Cookie',
@@ -96,74 +72,9 @@ class BlogHandler(webapp2.RequestHandler):
         self.user = uid and User.by_id(int(uid))
 
 
-def render_post(response, post):
-    response.out.write('<b>' + post.subject + '</b><br>')
-    response.out.write(post.content)
-
-##### user stuff
-def make_salt(length=5):
-    return ''.join(random.choice(letters) for x in xrange(length))
-
-def make_pw_hash(name, pw, salt=None):
-    if not salt:
-        salt = make_salt()
-    h = hashlib.sha256(name + pw + salt).hexdigest()
-    return '%s,%s' % (salt, h)
-
-def valid_pw(name, password, h):
-    salt = h.split(',')[0]
-    return h == make_pw_hash(name, password, salt)
-
-
-def users_key(group='default'):
-    return db.Key.from_path('users', group)
-
-class User(db.Model):
-    name = db.StringProperty(required=True)
-    pw_hash = db.StringProperty(required=True)
-    email = db.StringProperty()
-
-    @classmethod
-    def by_id(cls, uid):
-        return User.get_by_id(uid, parent=users_key())
-
-    @classmethod
-    def by_name(cls, name):
-        u = User.all().filter('name =', name).get()
-        return u
-
-    @classmethod
-    def register(cls, name, pw, email=None):
-        pw_hash = make_pw_hash(name, pw)
-        return User(parent=users_key(),
-                    name=name,
-                    pw_hash=pw_hash,
-                    email=email)
-
-    @classmethod
-    def login(cls, name, pw):
-        u = cls.by_name(name)
-        if u and valid_pw(name, pw, u.pw_hash):
-            return u
-
-
-##### blog stuff
-def blog_key(name='default'):
-    return db.Key.from_path('blogs', name)
-
-
-class Post(db.Model):
-    """posts database"""
-    subject = db.StringProperty(required=True)
-    content = db.TextProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-    last_modified = db.DateTimeProperty(auto_now=True)
-
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p=self)
-
-
+# def render_post(response, post):
+#     response.out.write('<b>' + post.subject + '</b><br>')
+#     response.out.write(post.content)
 class BlogFront(BlogHandler):
     """blog frontpage"""
     def get(self):
@@ -175,11 +86,9 @@ class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
-
         if not post:
             self.error(404)
             return
-
         self.render("permalink.html", post=post)
 
 class NewPost(BlogHandler):
@@ -205,17 +114,6 @@ class NewPost(BlogHandler):
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject,
                             content=content, error=error)
-
-
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-def valid_username(username):
-    return username and USER_RE.match(username)
-PASS_RE = re.compile(r"^.{3,20}$")
-def valid_password(password):
-    return password and PASS_RE.match(password)
-EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-def valid_email(email):
-    return not email or EMAIL_RE.match(email)
 
 class Signup(BlogHandler):
     """general purpose signup page without done implemented"""
@@ -266,10 +164,8 @@ class Register(Signup):
         else:
             u = User.register(self.username, self.password, self.email)
             u.put()
-
             self.login(u)
             self.redirect('/blog')
-
 
 class Login(BlogHandler):
     """page login user"""
@@ -288,13 +184,11 @@ class Login(BlogHandler):
             msg = 'Invalid login'
             self.render('login-form.html', error=msg)
 
-
 class Logout(BlogHandler):
     """logout handler"""
     def get(self):
         self.logout()
         self.redirect('/blog')
-
 
 class Welcome(BlogHandler):
     """welcome/dashboard once user login"""
@@ -304,8 +198,7 @@ class Welcome(BlogHandler):
         else:
             self.redirect('/signup')
 
-
-app = webapp2.WSGIApplication([('/', Register),  # TODO a good design let unsign up user have a peek
+app = webapp2.WSGIApplication([('/', Register),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/newpost', NewPost),
