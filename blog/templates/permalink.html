@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+  {% if user %}
+    {% if user.name==post.author %}
+    <form action="/blog/edit/{{post.key().id()}}" name="edit-post-form">
+        <input type="submit" value="edit">
+    </form>
+    <form method="get" action="/blog/delete/{{post.key().id()}}" name="delete-post-form">
+        <input type="submit" value="delete">
+    </form>
+    {% endif %}
+  {% endif %}
   {{post.render() | safe}}
 {% endblock %}

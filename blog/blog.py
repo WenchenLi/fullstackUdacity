@@ -33,7 +33,7 @@ and delete comments they themselves have made.
 #TODO set expiration for user cookie
 
 import webapp2
-
+import time
 from template_setup import *
 from database import *
 from regexp import *
@@ -115,6 +115,43 @@ class NewPost(BlogHandler):
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject,
                             content=content, error=error)
+
+class EditPost(BlogHandler):
+    """page for edit previous post"""
+    def get(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+
+        if self.user:
+            self.render("editpost.html", p=p)
+        else:
+            self.redirect("/login")
+
+    def post(self,post_id):
+        if not self.user:
+            self.redirect('/blog')
+
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+
+        p.subject = self.request.get('subject')
+        p.content = self.request.get('content')
+
+        if p.subject and p.content:
+            p.put()
+            self.redirect('/blog/%s' % str(p.key().id()))
+        else:
+            error = "subject and content, please!"
+            self.render("editpost.html", p=p, error=error)
+
+class DeletePost(BlogHandler):
+    """handler for delte previous post"""
+    def get(self,post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+        p.delete()
+        time.sleep(.5)#TODO this is not idea, need to have callback once deleted from db,delete_async() might be good candidate
+        self.redirect('/blog')
 
 class Signup(BlogHandler):
     """general purpose signup page without done implemented"""
@@ -202,6 +239,8 @@ class Welcome(BlogHandler):
 app = webapp2.WSGIApplication([('/', Register),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
+                               ('/blog/edit/([0-9]+)', EditPost),
+                               ('/blog/delete/([0-9]+)', DeletePost),
                                ('/blog/newpost', NewPost),
                                ('/signup', Register),
                                ('/login', Login),

@@ -3,6 +3,13 @@
 {% block content %}
 
   {% for p in posts %}
+    {% if user %}
+      {% if user.name==p.author %}
+      <form action="/blog/edit/{{p.key().id()}}" name="edit-post-form">
+          <input type="submit" value="edit">
+      </form>
+      {% endif %}
+    {% endif %}
     {{ p.render() | safe }}
     <br><br>
   {% endfor %}
