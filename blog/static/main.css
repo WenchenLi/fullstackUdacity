@@ -91,6 +91,12 @@ input[type=submit] {
     font-weight: bold;
 }
 
+.post-author {
+  position: relative;
+  left: 80%;
+  border: 3px;
+}
+
 .post-date {
     position: absolute;
     right: 0px;
@@ -102,4 +108,3 @@ input[type=submit] {
 .post-content {
     margin-top: 5px;
 }
-

@@ -4,7 +4,6 @@ from google.appengine.ext import db
 from hash import *
 from template_setup import template_render_str
 
-##### user stuff
 def users_key(group='default'):
     return db.Key.from_path('users', group)
 
@@ -38,7 +37,6 @@ class User(db.Model):
             return u
 
 
-##### blog stuff
 def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
 
@@ -48,6 +46,7 @@ class Post(db.Model):
     content = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
+    author = db.StringProperty(required=True)
 
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')

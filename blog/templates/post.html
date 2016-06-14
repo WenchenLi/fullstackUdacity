@@ -3,10 +3,19 @@
     <div class="post-title">
       {{p.subject}}
     </div>
-
+    {% if user %}
+    user.name
+      {% if user.name==p.author %}
+        <button type="button" name="edit-post-button">edit</button>
+      {% endif %}
+    {% endif %}
+    <div class="post-author">
+      {{p.author}}
+    </div>
     <div class="post-date">
       {{p.created.strftime("%b %d, %Y")}}
     </div>
+
   </div>
 
   <div class="post-content">
