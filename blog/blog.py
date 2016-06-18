@@ -34,6 +34,8 @@ import time
 from template_setup import *
 from database import *
 from regexp import *
+import datetime
+import constant
 
 class BlogHandler(webapp2.RequestHandler):
     """base handler"""
@@ -59,6 +61,8 @@ class BlogHandler(webapp2.RequestHandler):
 
     def login(self, user):
         self.set_secure_cookie('user_id', str(user.key().id()))
+        self.set_secure_cookie('expires', str((datetime.datetime.now() +
+            datetime.timedelta(weeks=2)).strftime('%a, %d %b %Y %H:%M:%S GMT')))
 
     def logout(self):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
