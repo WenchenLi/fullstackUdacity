@@ -27,7 +27,6 @@ able to like their own post.
 3. Only signed in users can post comments.Users can only edit
 and delete comments they themselves have made.
 """
-#TODO set expiration for user cookie
 
 import webapp2
 import time
@@ -296,6 +295,10 @@ class Login(BlogHandler):
             msg = 'Invalid login'
             self.render('login-form.html', error=msg)
 
+class SigninPage(BlogHandler):
+    def get(self):
+        self.render('signin.html')
+
 class Logout(BlogHandler):
     """logout handler"""
     def get(self):
@@ -310,7 +313,7 @@ class Welcome(BlogHandler):
         else:
             self.redirect('/signup')
 
-app = webapp2.WSGIApplication([('/', Register),
+app = webapp2.WSGIApplication([('/', SigninPage),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/like/([0-9]+)', LikePost),
