@@ -19,7 +19,19 @@
 <h3>Comments</h3>
 {% if comments %}
   {% for c in comments%}
+    {% if user %}
+      {% if user.name==c.author %}
+        <hr>
+        <form action="/blog/comment/edit/?post_id={{post.key().id()}}&comment_id={{c.key().id()}}" name="edit-post-form" class="edit">
+            <input type="submit" value="edit">
+        </form>
+        <form method="get" action="/blog/comment/delete/?post_id={{post.key().id()}}&comment_id={{c.key().id()}}" name="delete-comment">
+            <input type="submit" value="delete">
+        </form>
+      {% endif %}
+    {% endif %}
     {{c.render() | safe}}
+    <hr>
   {% endfor %}
 {% endif %}
   <form method="post">

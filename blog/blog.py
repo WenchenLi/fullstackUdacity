@@ -188,6 +188,48 @@ class DeletePost(BlogHandler):
         time.sleep(.5)#TODO this is not idea, need to have callback once deleted from db,delete_async() might be good candidate
         self.redirect('/blog')
 
+class EditComment(BlogHandler):
+    """handler for edit previous comment"""
+    def get(self, post_id,comment_id):
+        key = db.Key.from_path('Comment', int(comment_id), parent=comment_key())
+        c = db.get(key)
+
+        if self.user:
+            self.render("editcomment.html", c=c)
+        else:
+            self.redirect("/login")
+
+
+    def post(self,post_id,comment_id):
+        if not self.user:
+            self.redirect('/blog')
+
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+
+        key = db.Key.from_path('Comment', int(comment_id), parent=commnet_key())
+        c = db.get(key)
+
+        c.content = self.request.get('content')
+
+        if  c.content:
+            c.put()
+            self.redirect('/blog/%s' % str(p.key().id()))
+        else:
+            error = "subject and content, please!"
+            self.render("editcomment.html", c=c, error=error)
+
+class DeleteComment(BlogHandler):
+    """handler for delte previous post"""
+    def get(self,post_id,comment_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+        key = db.Key.from_path('Comment', int(comment_id), parent=commnet_key())
+        c = db.get(key)
+        c.delete()
+        time.sleep(.5)#TODO this is not idea, need to have callback once deleted from db,delete_async() might be good candidate
+        self.redirect('/blog%s' % str(p.key().id()))
+
 class Signup(BlogHandler):
     """general purpose signup page without done implemented"""
     def get(self):
@@ -277,6 +319,8 @@ app = webapp2.WSGIApplication([('/', Register),
                                ('/blog/like/([0-9]+)', LikePost),
                                ('/blog/edit/([0-9]+)', EditPost),
                                ('/blog/delete/([0-9]+)', DeletePost),
+                               ('/blog/comment/edit/([0-9]+)', EditComment),
+                               ('/blog/comment/delete/([0-9]+)', DeleteComment),
                                ('/blog/newpost', NewPost),
                                ('/signup', Register),
                                ('/login', Login),
