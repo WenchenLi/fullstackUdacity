@@ -52,3 +52,16 @@ class Post(db.Model):
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
         return template_render_str("post.html", p=self)
+
+def comment_key(name='default'):
+    return db.Key.from_path('comment', name)
+
+class Comment(db.Model):
+    """comments db"""
+    content = db.TextProperty(required=True)
+    post_id = db.StringProperty(required=True)
+    created = db.DateTimeProperty(auto_now_add=True)
+    author = db.StringProperty(required=True)
+    def render(self):
+        self._render_text = self.content.replace('\n', '<br>')
+        return template_render_str("comment.html", c=self)

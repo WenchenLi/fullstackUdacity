@@ -80,10 +80,28 @@ class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
         post = db.get(key)
+        comments = Comment.all()
+        # comments.ancestor(comment_key())
+        comments.filter('post_id =',str(post_id))
+        comments.order('-created')
         if not post:
             self.error(404)
             return
-        self.render("permalink.html", post=post)
+        self.render("permalink.html", post=post,comments=comments)
+
+    def post(self,post_id):
+        if not self.user:
+            self.redirect('/blog')
+
+        comment_content = self.request.get('comment-content')
+        if post_id and comment_content:
+            c = Comment(parent=comment_key(), content=comment_content,
+                        author=self.user.name, post_id=post_id)
+            c.put()
+            time.sleep(.05)
+            self.redirect('/blog/%s' % str(post_id))
+        else:
+            self.response.out.write("comment, please!")
 
 class NewPost(BlogHandler):
     """page for write new post"""

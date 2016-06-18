@@ -13,3 +13,19 @@
   {% endif %}
   {{post.render() | safe}}
 {% endblock %}
+
+{% block comment %}
+<hr>
+<h3>Comments</h3>
+{% if comments %}
+  {% for c in comments%}
+    {{c.render() | safe}}
+  {% endfor %}
+{% endif %}
+  <form method="post">
+    <label>
+      <textarea rows="2" cols="10" name="comment-content">{{content}}</textarea>
+    </label>
+    <input type="submit">
+  </form>
+{% endblock %}
