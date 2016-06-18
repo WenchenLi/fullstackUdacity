@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  {% for p in posts %}
+    {% if user %}
+      {% if user.name==p.author %}
+        <div class="post-edit">
+          <form action="/blog/edit/{{p.key().id()}}" name="edit-post-form">
+              <input type="submit" value="edit">
+          </form>
+        </div>
+      {% else %}
+        <div class="post-likes-button">
+          <form method="post" action="/blog/like/{{p.key().id()}}" name="like-post">
+              <input type="submit" value="like">
+          </form>
+        </div>
+      {% endif %}
+    {% endif %}
+    {{ p.render() | safe }}
+    <br><br>
+  {% endfor %}
+
+{% endblock %}
