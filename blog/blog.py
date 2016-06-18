@@ -27,7 +27,6 @@ able to like their own post.
 3. Only signed in users can post comments.Users can only edit
 and delete comments they themselves have made.
 """
-#TODO comments(like posts without title) with edit and delelte
 #TODO set expiration for user cookie
 
 import webapp2
@@ -90,18 +89,18 @@ class PostPage(BlogHandler):
         self.render("permalink.html", post=post,comments=comments)
 
     def post(self,post_id):
-        if not self.user:
-            self.redirect('/blog')
-
         comment_content = self.request.get('comment-content')
-        if post_id and comment_content:
+        if self.user and comment_content:
             c = Comment(parent=comment_key(), content=comment_content,
                         author=self.user.name, post_id=post_id)
             c.put()
-            time.sleep(.05)
+            time.sleep(.5)#TODO callback once
             self.redirect('/blog/%s' % str(post_id))
         else:
-            self.response.out.write("comment, please!")
+            if not self.user:
+                self.redirect('/login')
+            else:
+                self.response.out.write("please write something!")
 
 class NewPost(BlogHandler):
     """page for write new post"""
@@ -190,7 +189,7 @@ class DeletePost(BlogHandler):
 
 class EditComment(BlogHandler):
     """handler for edit previous comment"""
-    def get(self, post_id,comment_id):
+    def get(self, comment_id):
         key = db.Key.from_path('Comment', int(comment_id), parent=comment_key())
         c = db.get(key)
 
@@ -199,36 +198,30 @@ class EditComment(BlogHandler):
         else:
             self.redirect("/login")
 
-
-    def post(self,post_id,comment_id):
+    def post(self,comment_id):
         if not self.user:
             self.redirect('/blog')
 
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        p = db.get(key)
-
-        key = db.Key.from_path('Comment', int(comment_id), parent=commnet_key())
+        key = db.Key.from_path('Comment', int(comment_id), parent=comment_key())
         c = db.get(key)
 
-        c.content = self.request.get('content')
-
+        c.content = self.request.get('comment-content')
         if  c.content:
             c.put()
-            self.redirect('/blog/%s' % str(p.key().id()))
+            time.sleep(.5)#TODO callback
+            self.redirect('/blog/%s' % str(c.post_id))
         else:
             error = "subject and content, please!"
             self.render("editcomment.html", c=c, error=error)
 
 class DeleteComment(BlogHandler):
     """handler for delte previous post"""
-    def get(self,post_id,comment_id):
-        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
-        p = db.get(key)
-        key = db.Key.from_path('Comment', int(comment_id), parent=commnet_key())
+    def get(self,comment_id):
+        key = db.Key.from_path('Comment', int(comment_id), parent=comment_key())
         c = db.get(key)
         c.delete()
         time.sleep(.5)#TODO this is not idea, need to have callback once deleted from db,delete_async() might be good candidate
-        self.redirect('/blog%s' % str(p.key().id()))
+        self.redirect('/blog/%s'% str(c.post_id))
 
 class Signup(BlogHandler):
     """general purpose signup page without done implemented"""

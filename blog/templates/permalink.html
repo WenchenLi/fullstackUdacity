@@ -17,15 +17,21 @@
 {% block comment %}
 <hr>
 <h3>Comments</h3>
+<form method="post">
+  <label>
+    <textarea rows="2" cols="10" name="comment-content">{{content}}</textarea>
+  </label>
+  <input type="submit">
+</form>
 {% if comments %}
   {% for c in comments%}
     {% if user %}
       {% if user.name==c.author %}
         <hr>
-        <form action="/blog/comment/edit/?post_id={{post.key().id()}}&comment_id={{c.key().id()}}" name="edit-post-form" class="edit">
+        <form action="/blog/comment/edit/{{c.key().id()}}" name="edit-comment">
             <input type="submit" value="edit">
         </form>
-        <form method="get" action="/blog/comment/delete/?post_id={{post.key().id()}}&comment_id={{c.key().id()}}" name="delete-comment">
+        <form  action="/blog/comment/delete/{{c.key().id()}}" name="delete-comment">
             <input type="submit" value="delete">
         </form>
       {% endif %}
@@ -34,10 +40,5 @@
     <hr>
   {% endfor %}
 {% endif %}
-  <form method="post">
-    <label>
-      <textarea rows="2" cols="10" name="comment-content">{{content}}</textarea>
-    </label>
-    <input type="submit">
-  </form>
+
 {% endblock %}
