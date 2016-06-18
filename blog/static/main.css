@@ -86,6 +86,13 @@ input[type=submit] {
     border-bottom: 3px solid #666;
 }
 
+.post-likes{
+  position: relative;
+  left: 80%;
+  border: 3px;
+}
+
+
 .post-title {
     font-size: 24px;
     font-weight: bold;

@@ -27,9 +27,7 @@ able to like their own post.
 3. Only signed in users can post comments.Users can only edit
 and delete comments they themselves have made.
 """
-#TODO featuress delete own posts,edit own posts,like
 #TODO comments(like posts without title) with edit and delelte
-#TODO associate posts with user info like name
 #TODO set expiration for user cookie
 
 import webapp2
@@ -71,10 +69,6 @@ class BlogHandler(webapp2.RequestHandler):
         uid = self.read_secure_cookie('user_id')
         self.user = uid and User.by_id(int(uid))
 
-
-# def render_post(response, post):
-#     response.out.write('<b>' + post.subject + '</b><br>')
-#     response.out.write(post.content)
 class BlogFront(BlogHandler):
     """blog frontpage"""
     def get(self):
@@ -108,13 +102,35 @@ class NewPost(BlogHandler):
 
         if subject and content:
             p = Post(parent=blog_key(), subject=subject, content=content,
-                        author=self.user.name)
+                        author=self.user.name, likes=0)
             p.put()
             self.redirect('/blog/%s' % str(p.key().id()))
         else:
             error = "subject and content, please!"
             self.render("newpost.html", subject=subject,
                             content=content, error=error)
+class LikePost(BlogHandler):
+    """likePosts handler"""
+    def get(self, post_id):
+        if self.user:
+            self.render("front.html")
+        else:
+            self.redirect("/login")
+
+    def post(self, post_id):
+        key = db.Key.from_path('Post', int(post_id), parent=blog_key())
+        p = db.get(key)
+        if self.user:
+            if self.user.name not in p.like_user:
+                p.likes += 1
+                p.like_user.append(self.user.name)
+                p.put()
+                time.sleep(.5)##TODO fix using calback
+                self.redirect("/blog")
+            else:
+                self.response.out.write("you already liked this post!")
+        else:
+            self.redirect("/login")
 
 class EditPost(BlogHandler):
     """page for edit previous post"""
@@ -126,6 +142,7 @@ class EditPost(BlogHandler):
             self.render("editpost.html", p=p)
         else:
             self.redirect("/login")
+
 
     def post(self,post_id):
         if not self.user:
@@ -239,6 +256,7 @@ class Welcome(BlogHandler):
 app = webapp2.WSGIApplication([('/', Register),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
+                               ('/blog/like/([0-9]+)', LikePost),
                                ('/blog/edit/([0-9]+)', EditPost),
                                ('/blog/delete/([0-9]+)', DeletePost),
                                ('/blog/newpost', NewPost),

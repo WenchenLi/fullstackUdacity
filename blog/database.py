@@ -47,7 +47,8 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     author = db.StringProperty(required=True)
-
+    likes = db.IntegerProperty(required=True)
+    like_user = db.StringListProperty(required=True)
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
         return template_render_str("post.html", p=self)
