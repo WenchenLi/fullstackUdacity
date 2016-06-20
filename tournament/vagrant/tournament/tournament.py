@@ -4,7 +4,7 @@
 #
 
 import psycopg2
-
+import bleach
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -15,7 +15,7 @@ def deleteMatches():
     """Remove all the match records from the database."""
     DB = connect()
     c = DB.cursor()
-    c.execute("DELETE * FROM matches")
+    c.execute("TRUNCATE TABLE match CASCADE")
     DB.commit()
     DB.close()
 
@@ -23,7 +23,7 @@ def deletePlayers():
     """Remove all the player records from the database."""
     DB = connect()
     c = DB.cursor()
-    c.execute("DELETE * FROM players")
+    c.execute("TRUNCATE TABLE player CASCADE")
     DB.commit()
     DB.close()
 
@@ -31,10 +31,10 @@ def countPlayers():
     """Returns the number of players currently registered."""
     DB = connect()
     c = DB.cursor()
-    c.execute("SELECT COUNT(*) FROM players")
+    c.execute("SELECT COUNT(*) FROM player")
     result = c.fetchone()
     DB.close()
-    return result
+    return result[0]
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
@@ -47,7 +47,7 @@ def registerPlayer(name):
     """
     DB = connect()
     c = DB.cursor()
-    c.execute("INSERT INTO players (name) VALUES (%s) ",
+    c.execute("INSERT INTO player (player_name) VALUES (%s) ",
                     (bleach.clean(name),))
     DB.commit()
     DB.close()
@@ -65,7 +65,11 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-
+    DB = connect()
+    c = DB.cursor()
+    c.execute("SELECT * FROM player_standings;")
+    result = c.fetchall()
+    return result
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -74,6 +78,12 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    DB = connect()
+    c = DB.cursor()
+    c.execute("INSERT INTO match (winner,loser) VALUES (%s,%s) ",
+                    (bleach.clean(winner),bleach.clean(loser),))
+    DB.commit()
+    DB.close()
 
 
 def swissPairings():
@@ -91,3 +101,13 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    playerstanding = playerStandings()
+    result = []
+    temp = []
+    for i, s in enumerate(playerstanding):
+        temp.append(s[0])
+        temp.append(s[1])
+        if i%2 == 1:
+            result.append(tuple(temp))
+            temp = []
+    return result
