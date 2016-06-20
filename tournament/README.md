@@ -8,6 +8,7 @@ this file is used to provide access to your database via a library of
 functions which can add, delete or query data in your database to another python
 program (a client program).
 ###tounament.py includes:
+
 #####registerPlayer(name)
 Adds a player to the tournament by putting an entry in the database. The database should assign an ID number to the player. Different players may have the same names but will receive different ID numbers.
 
