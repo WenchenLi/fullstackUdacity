@@ -28,7 +28,7 @@ CREATE VIEW player_standings AS
 		(select count(*) from match where player.player_id = match.winner or player.player_id = match.loser) as matches
 	from
 		player
-	left join #player exist before match
+	left join --player exist before match
 		match on
 	 		player.player_id = match.winner
 	group by player.player_id
