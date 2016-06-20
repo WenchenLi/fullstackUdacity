@@ -5,7 +5,7 @@ hash function used in the system
 import random
 import hashlib
 import hmac
-from constant import *
+from constant import secret
 from string import letters
 
 def make_salt(length=5):
