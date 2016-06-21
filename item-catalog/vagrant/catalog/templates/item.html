@@ -1,0 +1,69 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+	<div class="row divider green">
+		<div class="col-md-12"></div>
+	</div>
+	<div class="row banner item">
+		<div class="col-md-11 col-md-offset-1 padding-none">
+			<h1>{{ catalog.name }}
+			<figure class="creator">
+				<img src="{{ url_for('static', filename='blank_user.gif') }}">
+				<figcaption>{{creator.name}}</figcaption>
+			</figure>
+			</h1>
+
+		</div>
+	</div>
+
+<div class = "flash">
+		      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+
+        <ul>
+        {% for message in messages %}
+            <li> <strong> {{ message }} </strong> </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
+
+</div>
+
+<div class="row padding-top padding-bottom">
+	<div class="col-md-1"></div>
+	<div class="col-md-11 padding-none">
+		<a href="{{url_for('editCatalog', catalog_id = catalog.id )}}">
+			<button class="btn btn-default" id="edit-catalog">
+				<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>Edit Catalog
+			</button>
+		</a>
+
+		<a href="{{url_for('deleteCatalog', catalog_id = catalog.id )}}">
+			<button class="btn btn-default delete" id="delete-catalog">
+				<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>Delete Catalog
+			</button>
+		</a>
+
+		<a href="{{url_for('newItem', catalog_id = catalog.id )}}">
+			<button class="btn btn-default" id="new-item">
+				<span class="glyphicon glyphicon-glass" aria-hidden="true"></span>Add Item
+			</button>
+		</a>
+	</div>
+	<div class="col-md-7"></div>
+</div>
+
+<div class="items">
+	{% if items !=[] %}
+		{% for i in items %}
+				<h3>{{i.name}}</h3>
+				<p>{{i.description}}</p>
+				<p class="item-price">{{i.price}}</p>
+				<a href='{{url_for('editItem', catalog_id = catalog.id, item_id=i.id ) }}'>Edit</a> |
+				<a href='{{url_for('deleteItem', catalog_id = catalog.id, item_id=i.id ) }}'>Delete</a>
+		{% endfor %}
+	{% endif %}
+</div>
+
+{% endblock %}
