@@ -6,3 +6,10 @@ tournament/vagrant/.vagrant/machines/default/virtualbox/id
 tournament/vagrant/.vagrant/machines/default/virtualbox/index_uuid
 tournament/vagrant/.vagrant/machines/default/virtualbox/private_key
 tournament/vagrant/.vagrant/machines/default/virtualbox/synced_folders
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/action_provision
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/action_set_name
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/creator_uid
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/id
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/index_uuid
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/private_key
+item-catalog/vagrant/.vagrant/machines/default/virtualbox/synced_folders
