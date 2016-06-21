@@ -13,3 +13,5 @@ item-catalog/vagrant/.vagrant/machines/default/virtualbox/id
 item-catalog/vagrant/.vagrant/machines/default/virtualbox/index_uuid
 item-catalog/vagrant/.vagrant/machines/default/virtualbox/private_key
 item-catalog/vagrant/.vagrant/machines/default/virtualbox/synced_folders
+item-catalog/vagrant/catalog/fb_client_secrets.json
+item-catalog/vagrant/catalog/g_client_secrets.json
