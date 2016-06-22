@@ -159,5 +159,8 @@ u }
 .flash li {
 	list-style-type: none;
 	text-align: center;
+}
 
+body {
+    background-color:#cce6ff;
 }

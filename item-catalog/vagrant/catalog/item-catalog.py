@@ -255,14 +255,14 @@ def gdisconnect():
 @app.route('/catalog/<int:catalog_id>/item/JSON')
 def catalogItemJSON(catalog_id):
     catalog = session.query(Catalog).filter_by(id=catalog_id).one()
-    items = session.query(ItemItem).filter_by(
+    items = session.query(Item).filter_by(
         catalog_id=catalog_id).all()
     return jsonify(ItemItems=[i.serialize for i in items])
 
 
 @app.route('/catalog/<int:catalog_id>/item/<int:item_id>/JSON')
 def itemItemJSON(catalog_id, item_id):
-    Item_Item = session.query(ItemItem).filter_by(id=item_id).one()
+    Item_Item = session.query(Item).filter_by(id=item_id).one()
     return jsonify(Item_Item=Item_Item.serialize)
 
 
