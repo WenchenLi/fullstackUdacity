@@ -306,8 +306,6 @@ def showCatalogs():
 @app.route('/catalog/new/', methods=['GET', 'POST'])
 @login_required
 def newCatalog():
-    # if 'username' not in login_session:
-    #     return redirect('/login')
     if request.method == 'POST':
         newCatalog = Catalog(
             name=request.form['name'], user_id=login_session['user_id'])
@@ -322,11 +320,10 @@ def newCatalog():
 
 
 @app.route('/catalog/<int:catalog_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def editCatalog(catalog_id):
     editedCatalog = session.query(
         Catalog).filter_by(id=catalog_id).one()
-    if 'username' not in login_session:
-        return redirect('/login')
     if editedCatalog.user_id != login_session['user_id']:
         return "<script>function myFunction() {alert('You are not authorized to edit this catalog. Please create your own catalog in order to edit.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
@@ -340,11 +337,10 @@ def editCatalog(catalog_id):
 
 # Delete a catalog
 @app.route('/catalog/<int:catalog_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def deleteCatalog(catalog_id):
     catalogToDelete = session.query(
         Catalog).filter_by(id=catalog_id).one()
-    if 'username' not in login_session:
-        return redirect('/login')
     if catalogToDelete.user_id != login_session['user_id']:
         return "<script>function myFunction() {alert('You are not authorized to delete this catalog. Please create your own catalog in order to delete.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
@@ -373,9 +369,8 @@ def showItem(catalog_id):
 
 # Create a new item item
 @app.route('/catalog/<int:catalog_id>/item/new/', methods=['GET', 'POST'])
+@login_required
 def newItem(catalog_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     catalog = session.query(Catalog).filter_by(id=catalog_id).one()
     if login_session['user_id'] != catalog.user_id:
         return "<script>function myFunction() {alert('You are not authorized to add item items to this catalog. Please create your own catalog in order to add items.');}</script><body onload='myFunction()''>"
@@ -391,9 +386,8 @@ def newItem(catalog_id):
 
 # Edit a item item
 @app.route('/catalog/<int:catalog_id>/item/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
 def editItem(catalog_id, item_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     editedItem = session.query(Item).filter_by(id=item_id).one()
     catalog = session.query(Catalog).filter_by(id=catalog_id).one()
     if login_session['user_id'] != catalog.user_id:
@@ -416,9 +410,8 @@ def editItem(catalog_id, item_id):
 # Delete a item item
 @app.route('/catalog/<int:catalog_id>/item/<int:item_id>/delete',
                 methods=['GET', 'POST'])
+@login_required
 def deleteItem(catalog_id, item_id):
-    if 'username' not in login_session:
-        return redirect('/login')
     catalog = session.query(Catalog).filter_by(id=catalog_id).one()
     itemToDelete = session.query(Item).filter_by(id=item_id).one()
     if login_session['user_id'] != catalog.user_id:
