@@ -1,15 +1,21 @@
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
+from flask import session as login_session
+from flask import make_response
+
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
+
 from database_setup_item_catalog import Base, Catalog, Item, User
-from flask import session as login_session
-import random
-import string
+
+from functools import wraps
+
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+
+import random
+import string
 import httplib2
 import json
-from flask import make_response
 import requests
 
 app = Flask(__name__)
@@ -26,6 +32,18 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
+
+#login decorator to avoid repetition
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' in login_session:
+            return f(*args, **kwargs)
+        else:
+            flash("You are not allowed to access there")
+            return redirect('/login')
+    return decorated_function
 
 # Create anti-forgery state token
 @app.route('/login')
@@ -286,9 +304,10 @@ def showCatalogs():
 
 
 @app.route('/catalog/new/', methods=['GET', 'POST'])
+@login_required
 def newCatalog():
-    if 'username' not in login_session:
-        return redirect('/login')
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     if request.method == 'POST':
         newCatalog = Catalog(
             name=request.form['name'], user_id=login_session['user_id'])
