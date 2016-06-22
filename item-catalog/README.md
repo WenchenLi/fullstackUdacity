@@ -1,45 +1,41 @@
 
-# Tournament
-A [swiss tournament](https://en.wikipedia.org/wiki/Swiss-system_tournament) database built upon PostgreSQL corresponding python db-api.
+# Item Catalog
+An Item Catalog web template for multiple user to add share online. It can be extended to similar purpose as user can add restaurants and it's menus.
 
-* tournament.sql : contain database schema and necessary view
-* tournament.py ­ ​:
-this file is used to provide access to your database via a library of
-functions which can add, delete or query data in your database to another python
-program (a client program).
+* database_setup_item_catalog.py : contain database schema build with [sqlachememy](http://www.sqlalchemy.org/)
+* item-catalog.py ­ ​: the handler for the website
 
-###tounament.py includes:
+## Features includes:
 
-#####registerPlayer(name)
-Adds a player to the tournament by putting an entry in the database. The database should assign an ID number to the player. Different players may have the same names but will receive different ID numbers.
+#####  authentication and authorization
 
-#####countPlayers()
-Returns the number of currently registered players. This function should not use the Python len() function; it should have the database count the players.
+user currently can login through google account or facebook account through Oauth2.0, anti-forgery token is created for each login session.
 
-#####deletePlayers()
-Clear out all the player records from the database.
+##### [flask framework](http://flask.pocoo.org/)
+Flask framework is used, so you can focus on the implementations thats most matters to your application. Flask includes jinja2, so your code is easily reusable.
 
-#####reportMatch(winner, loser)
-Stores the outcome of a single match between two players in the database.
+##### RESTAPI supported
+* all items under specific catalog_id
 
-#####deleteMatches()
-Clear out all the match records from the database.
+  ```localhost:5000/catalog/<int:catalog_id>/item/JSON```
 
-#####playerStandings()
-Returns a list of (id, name, wins, matches) for each player, sorted by the number of wins each player has.
+* one specific item under one specific catalog
 
-#####swissPairings()
-Given the existing set of registered players and the matches they have played, generates and returns a list of pairings according to the Swiss system. Each pairing is a tuple (id1, name1, id2, name2), giving the ID and name of the paired players. For instance, if there are eight registered players, this function should return four pairings. This function should use playerStandings to find the ranking of players.
+  ```localhost:5000/catalog/<int:catalog_id>/item/<int:item_id>/JSON```
+
+* all catalogs and items at the site
+
+  ```localhost:5000/catalog/JSON```
 
 ## Quick Run
-To test the implementation please navigate to vagrant/tournament
-and to setup the database schema use:
+To test the implementation please navigate to vagrant/catalog
+and to setup the database use:
 
-```psql - f tournament.sql```
+```python database_setup_item_catalog.py```
 
-to run the test script:
+to host the website run:
 
-```python tournament_test.py```
+```python item-catalog.py```
 
 
 ## Using the Vagrant Virtual Machine  
