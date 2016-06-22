@@ -15,17 +15,18 @@ user currently can login through google account or facebook account through Oaut
 Flask framework is used, so you can focus on the implementations thats most matters to your application. Flask includes jinja2, so your code is easily reusable.
 
 ##### RESTAPI supported
-* all items under specific catalog_id
+* all items under specific catalog_id:
 
-  ```localhost:5000/catalog/<int:catalog_id>/item/JSON```
+localhost:5000/catalog/<int:catalog_id>/item/JSON
+  
 
-* one specific item under one specific catalog
+* one specific item under one specific catalog: 
 
-  ```localhost:5000/catalog/<int:catalog_id>/item/<int:item_id>/JSON```
+localhost:5000/catalog/<int:catalog_id>/item/<int:item_id>/JSON
 
-* all catalogs and items at the site
+* all catalogs and items at the site: 
 
-  ```localhost:5000/catalog/JSON```
+localhost:5000/catalog/JSON
 
 ## Quick Run
 To test the implementation please navigate to vagrant/catalog
