@@ -1,0 +1,43 @@
+body {
+    font-family: 'Fredericka the Great', cursive;
+    color: black;
+    font-weight: 300;
+}
+
+.text-muted {
+    color: grey;
+}
+
+.text-thin {
+    font-weight: 100;
+}
+
+.title-super {
+    font-size: 60px;
+}
+
+.title-logo {
+    margin: auto;
+    margin-left: 10px;
+}
+
+.text-normal {
+    font-size: 20px;
+    margin: 20px;
+}
+
+.img-center {
+  margin:0 auto;
+}
+
+.header-text-right{
+  text-align: right;
+}
+
+.paragraph-text{
+  font-family: "Tahoma";
+}
+
+.iframe-border{
+  border:medium double rgb(255,255,255);
+}
