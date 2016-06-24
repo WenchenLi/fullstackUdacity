@@ -1,5 +1,4 @@
 body {
-    font-family: 'Fredericka the Great', cursive;
     color: black;
     font-weight: 300;
 }
@@ -40,4 +39,18 @@ body {
 
 .iframe-border{
   border:medium double rgb(255,255,255);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#map-outer {
+  height: 90%;
+ }
+
+#map-container {
+  height: 600px
 }
