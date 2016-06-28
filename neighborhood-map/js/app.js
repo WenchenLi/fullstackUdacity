@@ -42,16 +42,14 @@ MapView.prototype.searchMap = function(searchtext) {
   console.log('MapView.prototype.searchMap');
   self.service = new google.maps.places.PlacesService(self.map);
   console.log('new map service with text: '+searchtext);
-  console.log(self);
   self.service.nearbySearch({
-    location: self.pos,
-    radius: 10,//TODO add to ui
+    location: { lat: self.pos.lat, lng: self.pos.lng},
+    radius: 1000,//TODO add to ui
     type: [searchtext]
   }, function(results, status) {
     console.log('MapView.nearbySearchCallback');
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       results.forEach(function(place){
-        console.log(place.geometry.location.lat());
         self.createMarker(place);
       });
     }else{
@@ -63,7 +61,6 @@ MapView.prototype.searchMap = function(searchtext) {
 MapView.prototype.createMarker = function(place) {
   var self = this;
   console.log("MapView.createMarker");
-  console.log(self);
   var marker = new google.maps.Marker({
     map: self.map,
     position: place.geometry.location,
