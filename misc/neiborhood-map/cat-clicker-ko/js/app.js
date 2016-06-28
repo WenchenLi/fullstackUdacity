@@ -46,7 +46,7 @@ var Cat = function(data){
 
 };
 
-//View
+//ViewModel
 var ViewModel = function(){
     var self = this;
 
