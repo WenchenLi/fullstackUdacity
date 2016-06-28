@@ -1,80 +1,79 @@
 //NOW just assigning MVC to different function pieces
 
 //MapView
-var MapView = {
-   initMap : function(){
-      map = new google.maps.Map(document.getElementById('map-container'), {
-        center: {lat: -34.397, lng: 150.644},
-        scrollwheel: false,
-        zoom: 8
-      });
-      var infoWindow = new google.maps.InfoWindow({map: map});
+var MapView = function ()  {
+  var pos;
+  var map;
+  var infowindow;
+  var service;
+};
 
-      // Try HTML5 geolocation.
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          var pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
+MapView.prototype.initMapWithCurrentLocation  =  function(){
+  var self = this;
+  this.map = new google.maps.Map(document.getElementById('map-container'), {
+    center: {lat: -33.867, lng: 151.195},
+    scrollwheel: true,
+    zoom:  15
+  });
+  this.infoWindow = new google.maps.InfoWindow({map: this.map});
 
-          infoWindow.setPosition(pos);
-          infoWindow.setContent('Location found.');
-          map.setCenter(pos);
-        }, function() {
-          handleLocationError(true, infoWindow, map.getCenter());
-        });
-      } else {
-        // Browser doesn't support Geolocation
-        handleLocationError(false, infoWindow, map.getCenter());
-      }
-    },
-
-   handleLocationError: function(browserHasGeolocation, infoWindow, pos) {
-    infoWindow.setPosition(pos);
-    infoWindow.setContent(browserHasGeolocation ?
-                          'Error: The Geolocation service failed.' :
-                          'Error: Your browser doesn\'t support geolocation.');
+  if (navigator.geolocation) {
+    // in global scope again. so self
+    navigator.geolocation.getCurrentPosition(function(position) {
+      self.pos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      self.infoWindow.setPosition(self.pos);
+      self.infoWindow.setContent('Location found.');
+      self.map.setCenter(self.pos);
+    }, function() {
+      handleLocationError(true, self.infoWindow, self.map.getCenter());
+    });
+  } else {
+    // Browser doesn't support Geolocation
+    handleLocationError(false, self.infoWindow, self.map.getCenter());
   }
 };
 
-//Init/test data
-var initialPlaces = [{
-    name: "Little Manuels",
-    lon: 38.00684,
-    lat: -121.805525,
-    content: "<div class='info'>Little Manuels</div>"
-}, {
-    name: "Hazels Drive-in",
-    lon: 38.0127268,
-    lat: -121.83241,
-    content: "<div class='info'>Hazels Drive-in</div>"
-}, {
-    name: "Tao San Jin",
-    lon: 37.9628493,
-    lat: -121.7366144,
-    content: "<div class='info'>Tao San Jin</div>"
-}, {
-    name: "Johnny Garlics",
-    lon: 37.94536,
-    lat: -121.742153,
-    content: "<div class='info'>Johnny Garlics</div>"
-}, {
-    name: "In-N-Out Burger",
-    lon: 37.955532,
-    lat: -121.6194595,
-    content: "<div class='info'>In-N-Out Burger</div>"
-}, {
-    name: "Bluefin Sushi",
-    lon: 37.6058122,
-    lat: -122.1113959,
-    content: "<div class='info'>Bluefin Sushi</div>"
-}, {
-    name: "E.J.Phair",
-    lon: 38.0330084,
-    lat: -121.8846951,
-    content: "<div class='info'>E.J.Phair</div>"
-}];
+MapView.prototype.searchMap = function(searchtext) {
+  var self = this;
+  var geocoder =new google.maps.Geocoder();
+  console.log('MapView.prototype.searchMap');
+  self.service = new google.maps.places.PlacesService(self.map);
+  console.log('new map service with text: '+searchtext);
+  console.log(self);
+  self.service.nearbySearch({
+    location: self.pos,
+    radius: 10,//TODO add to ui
+    type: [searchtext]
+  }, function(results, status) {
+    console.log('MapView.nearbySearchCallback');
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      results.forEach(function(place){
+        console.log(place.geometry.location.lat());
+        self.createMarker(place);
+      });
+    }else{
+      console.log("google.maps.places.PlacesServiceStatus not ok");
+    }
+  });
+};
+
+MapView.prototype.createMarker = function(place) {
+  var self = this;
+  console.log("MapView.createMarker");
+  console.log(self);
+  var marker = new google.maps.Marker({
+    map: self.map,
+    position: place.geometry.location,
+    animation: google.maps.Animation.DROP
+  });
+  google.maps.event.addListener(marker, 'click', function() {
+    self.infoWindow.setContent(place.name);
+    self.infoWindow.open(self.map, this);
+  });
+};
 
 //M
 var Place = function (data) {
@@ -84,11 +83,12 @@ var Place = function (data) {
 
 //VM
 var ViewModel = function () {
-    var map ;
-    var infoWindow ;
     var self = this;
 
+    this.searchtext = ko.observable("store");
+
     this.placeList = ko.observableArray([]);
+
     initialPlaces.forEach(function(placeItem){
         self.placeList.push(new Place(placeItem));
     });
@@ -98,99 +98,22 @@ var ViewModel = function () {
     this.changePlace = function(place){
       self.currentPlace(place);
     };
-
-    function loadGoogleMaps(){
-      var googleMaps = document.createElement("script");
-      googleMaps.type = "text/javascript";
-      googleMaps.src = "http://maps.googleapis.com/maps/api/js?key=AIzaSyCMcRmHm0M2Z_WoNneWdwUrawwZqJAvb4Q&libraries=places&callback=initMap";
-      // googleMaps.setAttritube
-      document.body.appendChild(googleMaps);
-    }
-
-    function initMap (){
-        map = new google.maps.Map(document.getElementById('map-container'), {
-          center: {lat: -34.397, lng: 150.644},
-          scrollwheel: false,
-          zoom: 8
-        });
-        var infoWindow = new google.maps.InfoWindow({map: map});
-
-        // Try HTML5 geolocation.
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-            var pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-
-            infoWindow.setPosition(pos);
-            infoWindow.setContent('Location found.');
-            map.setCenter(pos);
-          }, function() {
-            handleLocationError(true, infoWindow, map.getCenter());
-          });
-        } else {
-          // Browser doesn't support Geolocation
-          handleLocationError(false, infoWindow, map.getCenter());
-        }
-      }
-
-    function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-      infoWindow.setPosition(pos);
-      infoWindow.setContent(browserHasGeolocation ?
-                            'Error: The Geolocation service failed.' :
-                            'Error: Your browser doesn\'t support geolocation.');
-    }
-
-    this.searchNeighborhood = function (formElement) {
-      var text = $(formElement).find( "input" ).val();
-      console.log(text);
-    };
-
-    function submitText () {
-
-    }
-
-    function initMapWithSearch(){
-      var pyrmont = {lat: -33.867, lng: 151.195};
-
-      map = new google.maps.Map(document.getElementById('map-container'), {
-        center: pyrmont,
-        zoom: 15
-      });
-
-      infoWindow = new google.maps.infoWindow();
-      var service = new google.maps.places.PlacesService(map);
-      service.nearbySearch({
-        location: pyrmont,
-        radius: 500,
-        type: ['store']
-      }, nearbySearchCallback);
-    }
-
-    function nearbySearchCallback(results, status) {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        for (var i = 0; i < results.length; i++) {
-          createMarker(results[i]);
-        }
-      }
-    }
-
-    //create marker on the map for given place ,V
-    function createMarker(place) {
-      var placeLoc = place.geometry.location;
-      var marker = new google.maps.Marker({
-        map: map,
-        position: place.geometry.location
-      });
-
-      google.maps.event.addListener(marker, 'click', function() {
-        infoWindow.setContent(place.name);
-        infoWindow.open(map, this);
-      });
-    }
-
 };
 
-vm = new ViewModel();
+ViewModel.prototype.searchNeighborhood = function (formElement) {
+  var text = $(formElement).find( "input" ).val();
+  mapview.searchMap(text);//TODO what if to be more general i want to refer to a instance of MapView
+};
+
+var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
+  infoWindow.setPosition(pos);
+  infoWindow.setContent(browserHasGeolocation ?
+                        'Error: The Geolocation service failed.' :
+                        'Error: Your browser doesn\'t support geolocation.');
+};
+
+
+var initialPlaces = [];
+var mapview = new MapView();
+var vm = new ViewModel();
 ko.applyBindings(vm);

@@ -35,13 +35,16 @@
         service.nearbySearch({
           location: pyrmont,
           radius: 500,
-          type: ['hello']
+          type: ['store']
         }, callback);
       }
 
       function callback(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
           for (var i = 0; i < results.length; i++) {
+            console.log('create marker for results: '+results[i].name);
+            console.log('create marker for results: '+results[i].geometry.location);
+            console.log(results);
             createMarker(results[i]);
           }
         }

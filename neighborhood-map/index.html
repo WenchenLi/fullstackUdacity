@@ -16,9 +16,12 @@
       <div class="row">
         <div id="input-area" class="center ow col-md-12">
           <form data-bind="submit: searchNeighborhood">
-              <input type="text" id="search-text" name="search-text" >
+              <input type="text" id="search-text" name="search-text" data-bind="value:searchtext">
               <button type="submit" name="search-button">search</button>
           </form>
+          <p>
+            Search: <strong data-bind="text:searchtext"></strong> around your neighborhood?
+          </p>
         </div>
       </div>
       <div class="row">
@@ -31,7 +34,7 @@
       </div> <!-- /row-->
     </div><!-- /container-->
     <script src="js/app.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=MapView.initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMcRmHm0M2Z_WoNneWdwUrawwZqJAvb4Q&libraries=places&callback=mapview.initMapWithCurrentLocation"
     async="async" defer="defer"></script>
   </body>
 </html>
