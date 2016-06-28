@@ -6,6 +6,7 @@ var MapView = function ()  {
   var map;
   var infowindow;
   var service;
+  var markers = [];
 };
 
 MapView.prototype.initMapWithCurrentLocation  =  function(){
@@ -38,10 +39,8 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 
 MapView.prototype.searchMap = function(searchtext) {
   var self = this;
-  var geocoder =new google.maps.Geocoder();
-  console.log('MapView.prototype.searchMap');
+  console.log('MapView.prototype.searchMap with text: '+searchtext);
   self.service = new google.maps.places.PlacesService(self.map);
-  console.log('new map service with text: '+searchtext);
   self.service.nearbySearch({
     location: { lat: self.pos.lat, lng: self.pos.lng},
     radius: 1000,//TODO add to ui
@@ -49,8 +48,12 @@ MapView.prototype.searchMap = function(searchtext) {
   }, function(results, status) {
     console.log('MapView.nearbySearchCallback');
     if (status === google.maps.places.PlacesServiceStatus.OK) {
+      if (vm.placeList.length===0){//clear all markers for new search results
+        self.deleteMarkers();
+      }
       results.forEach(function(place){
         self.createMarker(place);
+        vm.placeList.push(place);
       });
     }else{
       console.log("google.maps.places.PlacesServiceStatus not ok");
@@ -61,11 +64,14 @@ MapView.prototype.searchMap = function(searchtext) {
 MapView.prototype.createMarker = function(place) {
   var self = this;
   console.log("MapView.createMarker");
+
   var marker = new google.maps.Marker({
     map: self.map,
     position: place.geometry.location,
     animation: google.maps.Animation.DROP
   });
+  self.markers.push(marker);
+
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
@@ -77,6 +83,34 @@ MapView.prototype.createMarker = function(place) {
   });
 };
 
+// Sets the map on all markers in the array.
+MapView.prototype.setMapOnAll = function (map) {
+  if (this.markers===undefined){
+    this.marker = [];
+  }else{
+    this.markers.forEach(function(marker){
+      marker.setMap(map);
+      }
+    );
+  }
+};
+
+// Removes the markers from the map, but keeps them in the array.
+MapView.prototype.clearMarkers = function() {
+  this.setMapOnAll(null);
+};
+
+// Shows any markers currently in the array.
+MapView.prototype.showMarkers = function() {
+  this.setMapOnAll(this.map);
+};
+
+// Deletes all markers in the array by removing references to them.
+MapView.prototype.deleteMarkers = function() {
+  this.clearMarkers();
+  this.markers = [];
+};
+
 //M
 var Place = function (data) {
     this.name = ko.observable(data.name);
@@ -84,11 +118,11 @@ var Place = function (data) {
     // this.imgSrc = ko.observable(data.imgSrc);
 };
 
-//VM
+//VM  view model has been described as a state of the data in the model
 var ViewModel = function () {
     var self = this;
 
-    this.searchtext = ko.observable("store");
+    this.searchtext = ko.observable("");
 
     this.placeList = ko.observableArray([]);
 
@@ -105,7 +139,10 @@ var ViewModel = function () {
 
 ViewModel.prototype.searchNeighborhood = function (formElement) {
   var text = $(formElement).find( "input" ).val();
-  mapview.searchMap(text);//TODO what if to be more general i want to refer to a instance of MapView
+  this.placeList.removeAll();
+  mapview.deleteMarkers();
+  console.log(this.placeList.length);
+  mapview.searchMap(text);
 };
 
 var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
@@ -114,6 +151,8 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
                         'Error: The Geolocation service failed.' :
                         'Error: Your browser doesn\'t support geolocation.');
 };
+
+
 
 
 var initialPlaces = [];
