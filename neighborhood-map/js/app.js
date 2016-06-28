@@ -69,13 +69,19 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
+    if (marker.getAnimation() !== null) {
+      marker.setAnimation(null);
+    } else {
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+    }
   });
 };
 
 //M
 var Place = function (data) {
     this.name = ko.observable(data.name);
-    this.imgSrc = ko.observable(data.imgSrc);
+    this.location = ko.observable(data.geometry.location);
+    // this.imgSrc = ko.observable(data.imgSrc);
 };
 
 //VM

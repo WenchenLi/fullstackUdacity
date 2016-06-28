@@ -27,7 +27,9 @@
       <div class="row">
         <div id="map-outer" class="col-md-12">
           <div id="restultList" class="col-md-3">
-            <ul class="list-group"></ul>
+            <ul id="place-list" data-bind="foreach: placeList">
+              <li data-bind="text: name, click: $parent.changeCat"></li>
+            </ul>
           </div>
           <div id="map-container" class="col-md-9"></div>
         </div><!-- /map-outer -->
