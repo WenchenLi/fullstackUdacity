@@ -121,6 +121,9 @@ MapView.prototype.searchMap = function(searchtext) {
         self.deleteMarkers();
       }
       results.forEach(function(place){
+        //used to create initialPlaces
+        // console.log(place.name);
+        // console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lat()});
         self.createMarker(place);
         vm.placeList.push(place);
       });
@@ -296,7 +299,28 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
                         'Error: Your browser doesn\'t support geolocation.');
 };
 
-var initialPlaces = [];
+var initialPlaces = [
+  {
+    name:"Vanderbilt YMCA",
+    geometry:{location:{lat: 40.7532831, lng: 40.7532831}}
+  },
+  {
+    name:"AKA United Nations",
+    geometry:{location:{lat: 40.7526079, lng: 40.7526079}}
+  },
+  {
+    name:"Fitzpatrick Grand Central",
+    geometry:{location:{lat: 40.7527602, lng: 40.7527602}}
+  },
+  {
+    name:"The Benjamin Hotel",
+    geometry:{location:{lat: 40.7565096, lng: 40.7565096}}
+  },
+  {
+    name:"Hampton Inn Manhattan Grand Central",
+    geometry:{location:{lat: 40.750959, lng: 40.750959}}
+  }
+];
 var mapview = new MapView();
 var vm = new ViewModel();
 ko.applyBindings(vm);
