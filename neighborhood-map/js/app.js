@@ -15,6 +15,11 @@ var MapView = function ()  {
   var currentAnimateMarker;
 };
 
+/**
+* @description initial map with current user location
+*             TODO sometimes current location is off a lot refer to my udacity forum question
+*             https://discussions.udacity.com/t/navigator-geolocation-get-wrong-current-location/175372/3
+*/
 MapView.prototype.initMapWithCurrentLocation  =  function(){
   var self = this;
   this.map = new google.maps.Map(document.getElementById('map-container'), {
@@ -43,6 +48,12 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
   }
 };
 
+/**
+* @description Search nearby with current user location using google.maps.places.PlacesService
+*               and place markers on the map with callback results and update ViewModel placeList
+*               TODO self.createMarker should be called from ViewModel not here remember MVVM
+* @param {string} searchtext: the searchtext from the search box
+*/
 MapView.prototype.searchMap = function(searchtext) {
   var self = this;
   console.log('MapView.prototype.searchMap with text: '+searchtext);
@@ -67,6 +78,10 @@ MapView.prototype.searchMap = function(searchtext) {
   });
 };
 
+/**
+* @description create marker given place data and push marker to mapview.markers
+* @param {Place} data - place:one of the callback results from nearbySearchCallback
+*/
 MapView.prototype.createMarker = function(place) {
   var self = this;
   console.log("MapView.createMarker");
@@ -89,7 +104,9 @@ MapView.prototype.createMarker = function(place) {
   });
 };
 
-// Sets the map on all markers in the array.
+/**
+* @description // Sets the map on all markers in the array.
+*/
 MapView.prototype.setMapOnAll = function (map) {
   if (this.markers===undefined){
     this.marker = [];
@@ -101,26 +118,32 @@ MapView.prototype.setMapOnAll = function (map) {
   }
 };
 
-// Removes the markers from the map, but keeps them in the array.
+/**
+* @description Removes the markers from the map, but keeps them in the array.
+*/
 MapView.prototype.clearMarkers = function() {
   this.setMapOnAll(null);
 };
 
-// Shows any markers currently in the array.
+/**
+* @description Shows any markers currently in the array.
+*/
 MapView.prototype.showMarkers = function() {
   this.setMapOnAll(this.map);
 };
 
-// Deletes all markers in the array by removing references to them.
+/**
+* @description Deletes all markers in the array by removing references to them.
+*/
 MapView.prototype.deleteMarkers = function() {
   this.clearMarkers();
   this.markers = [];
 };
 
-MapView.prototype.animateMarkers = function(place) {
-  this.setMapOnAll(null);
-};
-
+/**
+* @description animate place corresponding marker using LatLng search TODO use hashmap
+* @param {[float,float]} LatLng:[lat,lng]
+*/
 MapView.prototype.animatePlaceWithLatLng = function(LatLng){
   var tempmapview = this;
   if (this.currentAnimateMarker){
@@ -195,23 +218,29 @@ var ViewModel = function () {
     };
 };
 
+/**
+* @description bind for the search box, new search clears old markers in mapview and this.placeList
+* @param {formElement} the html searchbox element
+*/
 ViewModel.prototype.searchNeighborhood = function (formElement) {
   var text = $(formElement).find( "input" ).val();
   this.placeList.removeAll();
   mapview.deleteMarkers();
-  console.log(this.placeList.length);
   mapview.searchMap(text);
 };
 
+/**
+* @description handler for location error when location current user position
+* @param {boolean} browserHasGeolocation
+* @param {infoWindow} infoWindow
+* @param {position} pos
+*/
 var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
   infoWindow.setPosition(pos);
   infoWindow.setContent(browserHasGeolocation ?
                         'Error: The Geolocation service failed.' :
                         'Error: Your browser doesn\'t support geolocation.');
 };
-
-
-
 
 var initialPlaces = [];
 var mapview = new MapView();
