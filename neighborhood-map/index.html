@@ -12,15 +12,16 @@
     <script src="js/libs/bootstrap.min.js"></script>
   </head>
   <body>
+    <input id="pac-input" class="controls col-md-9" type="text" placeholder="the plcae you where you seach the neighborhood">
     <div class="container">
       <div class="row">
         <div id="input-area" class="center col-md-12">
           <form data-bind="submit: searchNeighborhood">
               <input type="text" id="search-text" name="search-text" data-bind="value:searchtext" class="col-md-9">
-              <button type="submit" name="search-button" class="col-md-3">search</button>
+              <button type="submit" name="search-button" class="col-md-3">search Neighborhood</button>
           </form>
           <p>
-            Search: <strong data-bind="text:searchtext"></strong> around your neighborhood?
+            Search: <strong data-bind="text:searchtext"></strong> around this neighborhood?
           </p>
         </div>
       </div>

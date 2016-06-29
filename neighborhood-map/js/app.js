@@ -10,24 +10,66 @@ var MapView = function ()  {
   var pos;
   var map;
   var infowindow;
-  var service;
+  // var service;
   var markers = [];
   var currentAnimateMarker;
 };
 
 /**
-* @description initial map with current user location
+* @description initial map with current user location, a search box in the map use to go to other place
 *             TODO sometimes current location is off a lot refer to my udacity forum question
 *             https://discussions.udacity.com/t/navigator-geolocation-get-wrong-current-location/175372/3
 */
 MapView.prototype.initMapWithCurrentLocation  =  function(){
   var self = this;
+
   this.map = new google.maps.Map(document.getElementById('map-container'), {
     center: {lat: -33.867, lng: 151.195},
     scrollwheel: true,
     zoom:  15
   });
   this.infoWindow = new google.maps.InfoWindow({map: this.map});
+
+  // add search area
+  var input = document.getElementById('pac-input');
+  var searchBox = new google.maps.places.SearchBox(input);
+  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  // Bias the SearchBox results towards current map's viewport.
+  this.map.addListener('bounds_changed', function() {
+    searchBox.setBounds(self.map.getBounds());
+    self.pos = {
+      lat:self.map.getCenter().lat(),
+      lng:self.map.getCenter().lng()
+    };
+    //change bounds init new search neighborhood with empty string
+    vm.searchNeighborhood();
+  });
+  searchBox.addListener('places_changed', function() {
+
+    var places = searchBox.getPlaces();
+    if (places.length === 0) {
+      return;
+    }
+    // For each place, get the icon, name and location.
+    var bounds = new google.maps.LatLngBounds();
+    places.forEach(function(item) {
+      var icon = {
+        url: item.icon,
+        size: new google.maps.Size(71, 71),
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(17, 34),
+        scaledSize: new google.maps.Size(25, 25)
+      };
+
+      if (item.geometry.viewport) {
+        // Only geocodes have viewport.
+        bounds.union(item.geometry.viewport);
+      } else {
+        bounds.extend(item.geometry.location);
+      }
+    });
+    self.map.fitBounds(bounds);
+  });
 
   if (navigator.geolocation) {
     // in global scope again. so self
@@ -39,6 +81,8 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       self.infoWindow.setPosition(self.pos);
       self.infoWindow.setContent('Location found.');
       self.map.setCenter(self.pos);
+
+      vm.searchNeighborhood();//search all nearby by using empty search text
     }, function() {
       handleLocationError(true, self.infoWindow, self.map.getCenter());
     });
@@ -58,13 +102,16 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 MapView.prototype.searchMap = function(searchtext) {
   var self = this;
   console.log('MapView.prototype.searchMap with text: '+searchtext);
-  self.service = new google.maps.places.PlacesService(self.map);
-  self.service.nearbySearch({
+  console.log(self.pos);
+  console.log(searchtext);
+  var service = new google.maps.places.PlacesService(self.map);
+  service.nearbySearch({
     location: { lat: self.pos.lat, lng: self.pos.lng},
     radius: 1000,//TODO add to ui
     type: [searchtext]
   }, function(results, status) {
     console.log('MapView.nearbySearchCallback');
+    console.log(status);
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       if (vm.placeList.length===0){//clear all markers for new search results
         self.deleteMarkers();
