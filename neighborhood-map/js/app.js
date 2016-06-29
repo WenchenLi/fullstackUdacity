@@ -304,14 +304,19 @@ ViewModel.prototype.ajaxFourSqure = function (place) {
     success: function(data) {
       var nameDistances = [];
       data.response.venues.forEach(function(item){
-        console.log(item.name);
+        // console.log(item.name);
         var dist = Levenshtein.get(place.name,item.name);
         nameDistances.push(dist);
         // console.log(item.hereNow.count);
       });
       // console.log(data);
-      console.log(data.response.venues[indexOfMinValue(nameDistances)].name);
-      self.hereNow("There are "+data.response.venues[indexOfMinValue(nameDistances)].hereNow.count + " people at " + data.response.venues[indexOfMinValue(nameDistances)].name);
+      var index = indexOfMinValue(nameDistances);
+      var minDist = nameDistances[index];
+      if (minDist>3){
+        alert("Sorry this place is not registered at Foursquare");
+      }else{
+        console.log(data.response.venues[index].name);
+        self.hereNow("There are "+data.response.venues[index].hereNow.count + " people at " + data.response.venues[index].name);}
       },
     error: function(error) {
       alert('Foursquare data is not available');
