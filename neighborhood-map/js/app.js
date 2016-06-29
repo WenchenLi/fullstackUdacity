@@ -13,6 +13,7 @@ var MapView = function ()  {
   // var service;
   var markers = [];
   var currentAnimateMarker;
+  // var currentQuery;
 };
 
 /**
@@ -34,6 +35,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
   var input = document.getElementById('pac-input');
   var searchBox = new google.maps.places.SearchBox(input);
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  this.map.addListener('center_changed', function() {vm.searchNeighborhood();});
   // Bias the SearchBox results towards current map's viewport.
   this.map.addListener('bounds_changed', function() {
     searchBox.setBounds(self.map.getBounds());
@@ -41,11 +43,8 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       lat:self.map.getCenter().lat(),
       lng:self.map.getCenter().lng()
     };
-    //change bounds init new search neighborhood with empty string
-    vm.searchNeighborhood();
   });
   searchBox.addListener('places_changed', function() {
-
     var places = searchBox.getPlaces();
     if (places.length === 0) {
       return;
@@ -102,14 +101,19 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 MapView.prototype.searchMap = function(searchtext) {
   var self = this;
   console.log('MapView.prototype.searchMap with text: '+searchtext);
-  console.log(self.pos);
   console.log(searchtext);
   var service = new google.maps.places.PlacesService(self.map);
   service.nearbySearch({
     location: { lat: self.pos.lat, lng: self.pos.lng},
     radius: 1000,//TODO add to ui
     type: [searchtext]
-  }, function(results, status) {
+  },
+  // service.textSearch({TODO textSearch vs nearbySearch
+  //   location: { lat: self.pos.lat, lng: self.pos.lng},
+  //   radius: 1000,
+  //   query:self.currentQuery
+  // },
+  function(results, status) {
     console.log('MapView.nearbySearchCallback');
     console.log(status);
     if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -275,6 +279,7 @@ ViewModel.prototype.searchNeighborhood = function (formElement) {
   var text = $(formElement).find( "input" ).val();
   this.placeList.removeAll();
   mapview.deleteMarkers();
+  // mapview.currentQuery = text;
   mapview.searchMap(text);
 };
 
