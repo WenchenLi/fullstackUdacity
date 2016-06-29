@@ -122,8 +122,8 @@ MapView.prototype.searchMap = function(searchtext) {
       }
       results.forEach(function(place){
         //used to create initialPlaces
-        console.log(place.name);
-        console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lng()});
+        // console.log(place.name);
+        // console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lng()});
         self.createMarker(place);
         vm.placeList.push(place);
       });
@@ -254,6 +254,8 @@ var ViewModel = function () {
 
     this.searchtext = ko.observable("");
 
+    this.hereNow = ko.observable("");
+
     this.placeList = ko.observableArray([]);
 
     initialPlaces.forEach(function(placeItem){
@@ -269,6 +271,7 @@ var ViewModel = function () {
       }
       self.currentPlace = place;
       var curLatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
+      self.ajaxFourSqure(place);
       mapview.animatePlaceWithLatLng(curLatLng);
     };
 
@@ -286,6 +289,38 @@ ViewModel.prototype.searchNeighborhood = function (formElement) {
   mapview.searchMap(text);
 };
 
+ViewModel.prototype.ajaxFourSqure = function (place) {
+  /* get Foursquare data */
+  /* Define Foursquare Developer client ID and Secret */
+  // var ident = 0;
+  var self = this;
+  /* get Foursquare data via ajax call */
+  $.ajax({
+    type: 'GET',
+    dataType: 'json',
+    url: 'https://api.foursquare.com/v2/venues/search',
+    data: 'client_id=' + client_id + '&client_secret=' + client_secret + '&v=20150815&ll=' + place.geometry.location.lat()+',' +place.geometry.location.lng()+'&limit=5',
+    async: true,
+    success: function(data) {
+      var nameDistances = [];
+      data.response.venues.forEach(function(item){
+        console.log(item.name);
+        var dist = Levenshtein.get(place.name,item.name);
+        nameDistances.push(dist);
+        // console.log(item.hereNow.count);
+      });
+      // console.log(data);
+      console.log(data.response.venues[indexOfMinValue(nameDistances)].name);
+      self.hereNow("There are "+data.response.venues[indexOfMinValue(nameDistances)].hereNow.count + " people at " + data.response.venues[indexOfMinValue(nameDistances)].name);
+      },
+    error: function(error) {
+      alert('Foursquare data is not available');
+    }
+
+
+  });
+};
+       /* end of Foursquare ajax call */
 /**
 * @description handler for location error when location current user position
 * @param {boolean} browserHasGeolocation
@@ -299,6 +334,37 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
                         'Error: Your browser doesn\'t support geolocation.');
 };
 
+// /**
+// * @description edit distantce between two string
+// * @param {string} s
+// * @param {string} t
+// * @return {int} min distance,
+// */
+// var levenshteinDistance = function(s, t) {
+//     if (!s.length) return t.length;
+//     if (!t.length) return s.length;
+//     return Math.min(
+//         levenshteinDistance(s.substr(1), t) + 1,
+//         levenshteinDistance(t.substr(1), s) + 1,
+//         levenshteinDistance(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
+//     ) + 1;
+// };
+/**
+* @description find index of min element in array
+* @param {array} array
+* @return {int} index,
+*/
+var indexOfMinValue = function(array){
+  var index = 0;
+  var value = array[0];
+  for (var i = 1; i < array.length; i++) {
+    if (array[i] < value) {
+      value = array[i];
+      index = i;
+    }
+  }
+  return index;
+};
 var initialPlaces = [
   {
     name:"Schuetzen Park",

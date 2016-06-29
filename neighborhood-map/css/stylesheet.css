@@ -54,3 +54,9 @@ html, body {
 #map-container {
   height: 600px
 }
+
+.scroll{
+  overflow-y:scroll;
+  height:100%;
+  width:20%;
+}
