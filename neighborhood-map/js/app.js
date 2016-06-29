@@ -1,12 +1,18 @@
 //NOW just assigning MVC to different function pieces
 
 //MapView
+
+/**
+* @description Represents a mapview
+* @constructor
+*/
 var MapView = function ()  {
   var pos;
   var map;
   var infowindow;
   var service;
   var markers = [];
+  var currentAnimateMarker;
 };
 
 MapView.prototype.initMapWithCurrentLocation  =  function(){
@@ -75,11 +81,11 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
-    if (marker.getAnimation() !== null) {
-      marker.setAnimation(null);
-    } else {
-      marker.setAnimation(google.maps.Animation.BOUNCE);
-    }
+    // if (marker.getAnimation() !== null) {
+    //   self.setMarkerAnimation(marker,false);
+    // } else {
+    //   self.setMarkerAnimation(marker,true);
+    // }
   });
 };
 
@@ -111,14 +117,60 @@ MapView.prototype.deleteMarkers = function() {
   this.markers = [];
 };
 
+MapView.prototype.animateMarkers = function(place) {
+  this.setMapOnAll(null);
+};
+
+MapView.prototype.animatePlaceWithLatLng = function(LatLng){
+  var tempmapview = this;
+  if (this.currentAnimateMarker){
+    this.setMarkerAnimation(this.currentAnimateMarker,false);
+  }
+
+  this.markers.forEach(function(marker){
+    if (marker.position.lat()==LatLng[0] && marker.position.lng()==LatLng[1]){
+        tempmapview.setMarkerAnimation(marker,true);
+    }
+  });
+  if (this.currentAnimateMarker===null){
+    alert("sorry, this place is not marked on the map");
+  }else{
+    console.log("place found");
+  }
+};
+
+/**
+* @description toggle marker
+* @param {marker} marker
+* @param {boolean} state
+*/
+MapView.prototype.setMarkerAnimation = function(marker,state){
+  if (state === true){
+    marker.setAnimation(google.maps.Animation.BOUNCE);
+    this.currentAnimateMarker = marker;
+  }else{
+    marker.setAnimation(null);
+    this.currentAnimateMarker = null;
+  }
+};
+
 //M
+/**
+* @description Place data model
+* @constructor
+* @param {Place} data - place:one of the callback results from nearbySearchCallback
+*/
 var Place = function (data) {
     this.name = ko.observable(data.name);
     this.location = ko.observable(data.geometry.location);
-    // this.imgSrc = ko.observable(data.imgSrc);
 };
 
+
 //VM  view model has been described as a state of the data in the model
+/**
+* @description ViewModel to bind html
+* @constructor
+*/
 var ViewModel = function () {
     var self = this;
 
@@ -130,10 +182,16 @@ var ViewModel = function () {
         self.placeList.push(new Place(placeItem));
     });
 
-    this.currentPlace = ko.observable(self.placeList()[0]);
+    this.currentPlace = self.placeList()[0];//ko.observable(self.placeList()[0]);
 
     this.changePlace = function(place){
-      self.currentPlace(place);
+      if (place ==self.currentPlace){
+        alert("you just click the same place");
+        return;
+      }
+      self.currentPlace = place;
+      var curLatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
+      mapview.animatePlaceWithLatLng(curLatLng);
     };
 };
 
