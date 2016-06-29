@@ -14,10 +14,10 @@
   <body>
     <div class="container">
       <div class="row">
-        <div id="input-area" class="center ow col-md-12">
+        <div id="input-area" class="center col-md-12">
           <form data-bind="submit: searchNeighborhood">
-              <input type="text" id="search-text" name="search-text" data-bind="value:searchtext">
-              <button type="submit" name="search-button">search</button>
+              <input type="text" id="search-text" name="search-text" data-bind="value:searchtext" class="col-md-9">
+              <button type="submit" name="search-button" class="col-md-3">search</button>
           </form>
           <p>
             Search: <strong data-bind="text:searchtext"></strong> around your neighborhood?

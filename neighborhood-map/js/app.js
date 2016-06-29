@@ -52,6 +52,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 * @description Search nearby with current user location using google.maps.places.PlacesService
 *               and place markers on the map with callback results and update ViewModel placeList
 *               TODO self.createMarker should be called from ViewModel not here remember MVVM
+*               comments: since google map api binding is not required here, so directly createMarker within callback
 * @param {string} searchtext: the searchtext from the search box
 */
 MapView.prototype.searchMap = function(searchtext) {
@@ -216,6 +217,7 @@ var ViewModel = function () {
       var curLatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
       mapview.animatePlaceWithLatLng(curLatLng);
     };
+
 };
 
 /**
