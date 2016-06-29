@@ -122,8 +122,8 @@ MapView.prototype.searchMap = function(searchtext) {
       }
       results.forEach(function(place){
         //used to create initialPlaces
-        // console.log(place.name);
-        // console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lat()});
+        console.log(place.name);
+        console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lng()});
         self.createMarker(place);
         vm.placeList.push(place);
       });
@@ -301,24 +301,24 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
 
 var initialPlaces = [
   {
-    name:"Vanderbilt YMCA",
-    geometry:{location:{lat: 40.7532831, lng: 40.7532831}}
+    name:"Schuetzen Park",
+    geometry:{location:{lat: 40.77641839999999, lng: -74.03310199999999}}
   },
   {
-    name:"AKA United Nations",
-    geometry:{location:{lat: 40.7526079, lng: 40.7526079}}
+    name:"The Skyline Hotel",
+    geometry:{location:{lat: 40.7643802, lng: -73.9924603}}
   },
   {
-    name:"Fitzpatrick Grand Central",
-    geometry:{location:{lat: 40.7527602, lng: 40.7527602}}
+    name:"Mandarin Oriental, New York",
+    geometry:{location:{lat: 40.7690089, lng: -73.98301099999998}}
   },
   {
-    name:"The Benjamin Hotel",
-    geometry:{location:{lat: 40.7565096, lng: 40.7565096}}
+    name:"The Empire Hotel",
+    geometry:{location:{lat: 40.7714959, lng: -73.9826673}}
   },
   {
-    name:"Hampton Inn Manhattan Grand Central",
-    geometry:{location:{lat: 40.750959, lng: 40.750959}}
+    name:"Trump International Hotel & Tower New York",
+    geometry:{location:{lat: 40.7690287, lng: -73.98160899999999}}
   }
 ];
 var mapview = new MapView();
