@@ -107,23 +107,13 @@ MapView.prototype.searchMap = function(searchtext) {
     location: { lat: self.pos.lat, lng: self.pos.lng},
     radius: 1000,//TODO add to ui
     type: [searchtext]
-  },
-  // service.textSearch({TODO textSearch vs nearbySearch
-  //   location: { lat: self.pos.lat, lng: self.pos.lng},
-  //   radius: 1000,
-  //   query:self.currentQuery
-  // },
-  function(results, status) {
+  },function(results, status) {
     console.log('MapView.nearbySearchCallback');
-    console.log(status);
     if (status === google.maps.places.PlacesServiceStatus.OK) {
       if (vm.placeList.length===0){//clear all markers for new search results
         self.deleteMarkers();
       }
       results.forEach(function(place){
-        //used to create initialPlaces
-        // console.log(place.name);
-        // console.log({lat:place.geometry.location.lat(),lng:place.geometry.location.lng()});
         self.createMarker(place);
         vm.placeList.push(place);
       });
@@ -151,12 +141,7 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
-    vm.ajaxFourSquare(place);
-    if (marker.getAnimation() !== null) {
-      self.setMarkerAnimation(marker,false);
-    } else {
-      self.setMarkerAnimation(marker,true);
-    }
+    vm.showInfo(place);
   });
 };
 
@@ -231,7 +216,7 @@ MapView.prototype.setMarkerAnimation = function(marker,state){
     var self = this;
     setTimeout(function(){
         marker.setAnimation(null);
-    }, 1000);
+    }, 1500);
   }else{
     marker.setAnimation(null);
     this.currentAnimateMarker = null;
@@ -275,9 +260,8 @@ var ViewModel = function () {
         alert("you just click the same place");
         return;
       }
-      self.currentPlace = place;
-      self.ajaxFourSquare(place);
-      mapview.animatePlace(place);
+    self.currentPlace = place;
+    self.showInfo(place);
     };
 
 };
@@ -325,6 +309,15 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
       alert('Foursquare data is not available');
     }
   });
+};
+
+/**
+* @description show how many people are there (via AJAX request), bounce the marker once
+* @param {placeItem} abstract level of play that can be put at listView and on the map
+*/
+ViewModel.prototype.showInfo = function (placeItem) {
+    this.ajaxFourSquare(placeItem);
+    mapview.animatePlace(placeItem);
 };
 /**
 * @description handler for location error when location current user position
