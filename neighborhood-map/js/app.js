@@ -151,6 +151,7 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
+    vm.ajaxFourSquare(place);
     if (marker.getAnimation() !== null) {
       self.setMarkerAnimation(marker,false);
     } else {
@@ -199,8 +200,9 @@ MapView.prototype.deleteMarkers = function() {
 * @description animate place corresponding marker using LatLng search TODO use hashmap
 * @param {[float,float]} LatLng:[lat,lng]
 */
-MapView.prototype.animatePlaceWithLatLng = function(LatLng){
+MapView.prototype.animatePlace = function(place){
   var tempmapview = this;
+  var LatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
   if (this.currentAnimateMarker){
     this.setMarkerAnimation(this.currentAnimateMarker,false);
   }
@@ -211,7 +213,7 @@ MapView.prototype.animatePlaceWithLatLng = function(LatLng){
     }
   });
   if (this.currentAnimateMarker===null){
-    alert("sorry, this place is not marked on the map");
+    alert("sorry," + place.name + " is not marked on the map");
   }else{
     console.log("place found");
   }
@@ -229,7 +231,7 @@ MapView.prototype.setMarkerAnimation = function(marker,state){
     var self = this;
     setTimeout(function(){
         marker.setAnimation(null);
-    }, 2000);
+    }, 1000);
   }else{
     marker.setAnimation(null);
     this.currentAnimateMarker = null;
@@ -274,9 +276,8 @@ var ViewModel = function () {
         return;
       }
       self.currentPlace = place;
-      var curLatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
       self.ajaxFourSquare(place);
-      mapview.animatePlaceWithLatLng(curLatLng);
+      mapview.animatePlace(place);
     };
 
 };
@@ -315,7 +316,7 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
       var index = indexOfMinValue(nameDistances);
       var minDist = nameDistances[index];
       if (minDist>3){
-        alert("Sorry this place is not registered at Foursquare");
+        alert("Sorry " + place.name + " is not registered at Foursquare.");
       }else{
         console.log(data.response.venues[index].name);
         self.hereNow("There are "+data.response.venues[index].hereNow.count + " people at " + data.response.venues[index].name);}
