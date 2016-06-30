@@ -247,7 +247,7 @@ var ViewModel = function () {
 
     this.hereNow = ko.observable("");
 
-    this.alert = ko.observable("");
+    // this.alert = ko.observable("");
 
     this.placeList = ko.observableArray([]);
 
@@ -259,7 +259,7 @@ var ViewModel = function () {
 
     this.changePlace = function(place){
       if (place ==self.currentPlace){//such way avoid unnecessary recompuation
-        self.alert("Aren't you just asked for the same place?");
+        alert("Aren't you just asked for the same place?");
         return;
       }
     self.currentPlace = place;
@@ -272,12 +272,11 @@ var ViewModel = function () {
 * @description bind for the search box, new search clears old markers in mapview and this.placeList
 * @param {formElement} the html searchbox element
 */
-ViewModel.prototype.searchNeighborhood = function (formElement) {
-  var text = $(formElement).find( "input" ).val();
+ViewModel.prototype.searchNeighborhood = function () {
+  var self = this;
   this.placeList.removeAll();
   mapview.deleteMarkers();
-  // mapview.currentQuery = text;
-  mapview.searchMap(text);
+  mapview.searchMap(self.searchtext());
 };
 
 /**

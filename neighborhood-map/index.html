@@ -17,7 +17,7 @@
       <div class="row">
         <div id="input-area" class="center col-md-12">
           <form data-bind="submit: searchNeighborhood">
-              <input type="text" id="search-text" name="search-text" data-bind="value:searchtext" class="col-md-9">
+              <input type="text" id="search-text" name="search-text" data-bind="textInput:searchtext" class="col-md-9">
               <button type="submit" name="search-button" class="col-md-3">search Neighborhood</button>
           </form>
           <p>
@@ -36,9 +36,12 @@
         </div><!-- /map-outer -->
       </div> <!-- /row-->
       <div class="row">
-        <p>
+        <p class="col-md-6">
           <strong data-bind="text:hereNow"></strong>
         </p>
+        <!-- <p class="col-md-6">
+          <strong data-bind="text:alert"></strong>
+        </p> -->
       </div>
     </div><!-- /container-->
     <script src="js/secret.js"></script>
