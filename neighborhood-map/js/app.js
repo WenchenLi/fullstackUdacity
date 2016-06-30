@@ -141,7 +141,7 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
-    vm.showInfo(place);
+    vm.changePlace(place);
   });
 };
 
@@ -247,6 +247,8 @@ var ViewModel = function () {
 
     this.hereNow = ko.observable("");
 
+    this.alert = ko.observable("");
+
     this.placeList = ko.observableArray([]);
 
     initialPlaces.forEach(function(placeItem){
@@ -256,8 +258,8 @@ var ViewModel = function () {
     this.currentPlace = self.placeList()[0];//ko.observable(self.placeList()[0]);
 
     this.changePlace = function(place){
-      if (place ==self.currentPlace){
-        alert("you just click the same place");
+      if (place ==self.currentPlace){//such way avoid unnecessary recompuation
+        self.alert("Aren't you just asked for the same place?");
         return;
       }
     self.currentPlace = place;
