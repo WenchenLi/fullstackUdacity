@@ -226,6 +226,10 @@ MapView.prototype.setMarkerAnimation = function(marker,state){
   if (state === true){
     marker.setAnimation(google.maps.Animation.BOUNCE);
     this.currentAnimateMarker = marker;
+    var self = this;
+    setTimeout(function(){
+        marker.setAnimation(null);
+    }, 2000);
   }else{
     marker.setAnimation(null);
     this.currentAnimateMarker = null;
