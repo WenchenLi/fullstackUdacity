@@ -335,6 +335,13 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
 };
 
 /**
+* @description error handler for google map api
+*/
+function googleError() {
+  alert("Sorry google map api is not working, try refresh please.");
+}
+
+/**
 * @description find index of min element in array
 * @param {array} array
 * @return {int} index,
