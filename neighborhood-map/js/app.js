@@ -151,11 +151,11 @@ MapView.prototype.createMarker = function(place) {
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
-    // if (marker.getAnimation() !== null) {
-    //   self.setMarkerAnimation(marker,false);
-    // } else {
-    //   self.setMarkerAnimation(marker,true);
-    // }
+    if (marker.getAnimation() !== null) {
+      self.setMarkerAnimation(marker,false);
+    } else {
+      self.setMarkerAnimation(marker,true);
+    }
   });
 };
 
