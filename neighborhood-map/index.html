@@ -12,11 +12,12 @@
     <script src="js/libs/bootstrap.min.js"></script>
   </head>
   <body>
-    <input id="pac-input" class="controls col-md-9" type="text" placeholder="the plcae you where you seach the neighborhood">
+    <input id="pac-input-neighborhood" class="controls col-md-6" type="text" placeholder="type a neighborhood">
+    <input id="pac-input-filter" class="controls col-md-6" type="text" placeholder="type a filter">
     <div class="container">
       <div class="row">
         <div id="input-area" class="center col-md-12">
-          <form data-bind="submit: searchNeighborhood">
+          <form data-bind="submit: animatePlace">
               <input type="text" id="search-text" name="search-text" data-bind="textInput:searchtext" class="col-md-9">
               <button type="submit" name="search-button" class="col-md-3">search Neighborhood</button>
           </form>
@@ -45,6 +46,7 @@
       </div>
     </div><!-- /container-->
     <script src="js/secret.js"></script>
+    <script src="js/constant.js"></script>
     <script src="js/libs/levenshtein.js"></script>
     <script src="js/app.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMcRmHm0M2Z_WoNneWdwUrawwZqJAvb4Q&libraries=places&callback=mapview.initMapWithCurrentLocation"

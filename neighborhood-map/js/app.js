@@ -18,8 +18,6 @@ var MapView = function ()  {
 
 /**
 * @description initial map with current user location, a search box in the map use to go to other place
-*             TODO sometimes current location is off a lot refer to my udacity forum question
-*             https://discussions.udacity.com/t/navigator-geolocation-get-wrong-current-location/175372/3
 */
 MapView.prototype.initMapWithCurrentLocation  =  function(){
   var self = this;
@@ -32,10 +30,10 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
   this.infoWindow = new google.maps.InfoWindow({map: this.map});
 
   // add search area
-  var input = document.getElementById('pac-input');
+  var input = document.getElementById('pac-input-neighborhood');
   var searchBox = new google.maps.places.SearchBox(input);
-  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-  this.map.addListener('center_changed', function() {vm.searchNeighborhood();});
+  // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);//when want a compact view in the map
+  this.map.addListener('center_changed', function() {vm.animatePlace();});
   // Bias the SearchBox results towards current map's viewport.
   this.map.addListener('bounds_changed', function() {
     searchBox.setBounds(self.map.getBounds());
@@ -81,7 +79,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       self.infoWindow.setContent('Location found.');
       self.map.setCenter(self.pos);
 
-      vm.searchNeighborhood();//search all nearby by using empty search text
+      vm.animatePlace();//search all nearby by using empty search text
     }, function() {
       handleLocationError(true, self.infoWindow, self.map.getCenter());
     });
@@ -101,12 +99,11 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 MapView.prototype.searchMap = function(searchtext) {
   var self = this;
   console.log('MapView.prototype.searchMap with text: '+searchtext);
-  console.log(searchtext);
   var service = new google.maps.places.PlacesService(self.map);
   service.nearbySearch({
     location: { lat: self.pos.lat, lng: self.pos.lng},
-    radius: 1000,//TODO add to ui
-    type: [searchtext]
+    radius: 10000, //TODO add to ui
+    type: ['all']
   },function(results, status) {
     console.log('MapView.nearbySearchCallback');
     if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -118,11 +115,41 @@ MapView.prototype.searchMap = function(searchtext) {
         vm.placeList.push(place);
       });
     }else{
-      console.log("google.maps.places.PlacesServiceStatus not ok");
+      alert("Oops something wrong with google.maps.places.PlacesServiceStatus");
     }
   });
 };
 
+/**
+* @description Search nearby with current user location using google.maps.places.PlacesService
+*               and place markers on the map with callback results and update ViewModel placeList
+*               TODO self.createMarker should be called from ViewModel not here remember MVVM
+*               comments: since google map api binding is not required here, so directly createMarker within callback
+* @param {string} searchtext: the searchtext from the search box
+*/
+MapView.prototype.getAllPlacesOnMap = function() {
+  var self = this;
+  console.log('MapView.prototype.getAllPlacesOnMap');
+  var service = new google.maps.places.PlacesService(self.map);
+  var currentTypes = types_short;
+  currentTypes.forEach(function(type){
+    service.nearbySearch({
+      location: { lat: self.pos.lat, lng: self.pos.lng},
+      radius: 1000, //TODO add to ui
+      type: [type]
+    },function(results, status) {
+        console.log('MapView.nearbySearchCallback');
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          results.forEach(function(place){
+            self.createMarker(place);
+            vm.placeList.push(place);
+          });
+        }else{//hancle type not on the current map view
+          console.log("No " + type + " is available at here.");
+        }
+      });
+    });
+};
 /**
 * @description create marker given place data and push marker to mapview.markers
 * @param {Place} data - place:one of the callback results from nearbySearchCallback
@@ -232,6 +259,7 @@ MapView.prototype.setMarkerAnimation = function(marker,state){
 var Place = function (data) {
     this.name = ko.observable(data.name);
     this.location = ko.observable(data.geometry.location);
+    this.types = data.types;
 };
 
 
@@ -272,11 +300,12 @@ var ViewModel = function () {
 * @description bind for the search box, new search clears old markers in mapview and this.placeList
 * @param {formElement} the html searchbox element
 */
-ViewModel.prototype.searchNeighborhood = function () {
+ViewModel.prototype.animatePlace = function () {
   var self = this;
   this.placeList.removeAll();
   mapview.deleteMarkers();
-  mapview.searchMap(self.searchtext());
+  // mapview.searchMap(self.searchtext());
+  mapview.getAllPlacesOnMap();
 };
 
 /**
@@ -293,6 +322,7 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
     data: 'client_id=' + client_id + '&client_secret=' + client_secret + '&v=20150815&ll=' + place.geometry.location.lat()+',' +place.geometry.location.lng()+'&limit=5',
     async: true,
     success: function(data) {
+      console.log(data);
       var nameDistances = [];
       data.response.venues.forEach(function(item){
         var dist = Levenshtein.get(place.name,item.name);
@@ -336,9 +366,9 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
 /**
 * @description error handler for google map api
 */
-function googleError() {
+var googleError = function() {
   alert("Sorry google map api is not working, try refresh please.");
-}
+};
 
 /**
 * @description find index of min element in array
@@ -359,23 +389,28 @@ var indexOfMinValue = function(array){
 var initialPlaces = [
   {
     name:"Schuetzen Park",
-    geometry:{location:{lat: 40.77641839999999, lng: -74.03310199999999}}
+    geometry:{location:{lat: 40.77641839999999, lng: -74.03310199999999}},
+    types:["restaurant"]
   },
   {
     name:"The Skyline Hotel",
-    geometry:{location:{lat: 40.7643802, lng: -73.9924603}}
+    geometry:{location:{lat: 40.7643802, lng: -73.9924603}},
+    types:["hotel"]
   },
   {
     name:"Mandarin Oriental, New York",
-    geometry:{location:{lat: 40.7690089, lng: -73.98301099999998}}
+    geometry:{location:{lat: 40.7690089, lng: -73.98301099999998}},
+    types:["restaurant"]
   },
   {
     name:"The Empire Hotel",
-    geometry:{location:{lat: 40.7714959, lng: -73.9826673}}
+    geometry:{location:{lat: 40.7714959, lng: -73.9826673}},
+    types:["hotel"]
   },
   {
     name:"Trump International Hotel & Tower New York",
-    geometry:{location:{lat: 40.7690287, lng: -73.98160899999999}}
+    geometry:{location:{lat: 40.7690287, lng: -73.98160899999999}},
+    types:["hotel","point_of_interest"]
   }
 ];
 var mapview = new MapView();
