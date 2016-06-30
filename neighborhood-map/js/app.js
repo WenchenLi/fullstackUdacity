@@ -271,7 +271,7 @@ var ViewModel = function () {
       }
       self.currentPlace = place;
       var curLatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
-      self.ajaxFourSqure(place);
+      self.ajaxFourSquare(place);
       mapview.animatePlaceWithLatLng(curLatLng);
     };
 
@@ -289,10 +289,11 @@ ViewModel.prototype.searchNeighborhood = function (formElement) {
   mapview.searchMap(text);
 };
 
-ViewModel.prototype.ajaxFourSqure = function (place) {
-  /* get Foursquare data */
-  /* Define Foursquare Developer client ID and Secret */
-  // var ident = 0;
+/**
+* @description get Foursquare data via ajax call, callback return count of people given the clicked place
+* @param {place} current clicked place in the listView
+*/
+ViewModel.prototype.ajaxFourSquare = function (place) {
   var self = this;
   /* get Foursquare data via ajax call */
   $.ajax({
@@ -304,12 +305,9 @@ ViewModel.prototype.ajaxFourSqure = function (place) {
     success: function(data) {
       var nameDistances = [];
       data.response.venues.forEach(function(item){
-        // console.log(item.name);
         var dist = Levenshtein.get(place.name,item.name);
         nameDistances.push(dist);
-        // console.log(item.hereNow.count);
       });
-      // console.log(data);
       var index = indexOfMinValue(nameDistances);
       var minDist = nameDistances[index];
       if (minDist>3){
@@ -321,11 +319,8 @@ ViewModel.prototype.ajaxFourSqure = function (place) {
     error: function(error) {
       alert('Foursquare data is not available');
     }
-
-
   });
 };
-       /* end of Foursquare ajax call */
 /**
 * @description handler for location error when location current user position
 * @param {boolean} browserHasGeolocation
@@ -339,21 +334,6 @@ var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
                         'Error: Your browser doesn\'t support geolocation.');
 };
 
-// /**
-// * @description edit distantce between two string
-// * @param {string} s
-// * @param {string} t
-// * @return {int} min distance,
-// */
-// var levenshteinDistance = function(s, t) {
-//     if (!s.length) return t.length;
-//     if (!t.length) return s.length;
-//     return Math.min(
-//         levenshteinDistance(s.substr(1), t) + 1,
-//         levenshteinDistance(t.substr(1), s) + 1,
-//         levenshteinDistance(s.substr(1), t.substr(1)) + (s[0] !== t[0] ? 1 : 0)
-//     ) + 1;
-// };
 /**
 * @description find index of min element in array
 * @param {array} array

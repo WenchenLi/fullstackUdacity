@@ -58,5 +58,15 @@ html, body {
 .scroll{
   overflow-y:
   scroll;
-  height:500px;
+  height:600px;
+}
+
+.placeList{
+  list-style-type: none;
+}
+
+.listItem{
+  border-radius: 10px;
+  background: #73AB31;
+  padding: 10px;
 }

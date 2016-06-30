@@ -28,9 +28,8 @@
       <div class="row">
         <div id="map-outer" class="col-md-12">
           <div id="restultList" class="col-md-3 scroll">
-            <ul id="place-list" data-bind="foreach: placeList">
-              <hr>
-              <p data-bind="text: name, click: $parent.changePlace"></p>
+            <ul id="place-list" class="placeList" data-bind="foreach: placeList">
+              <li class="listItem" data-bind="text: name, click: $parent.changePlace"></li>
             </ul>
           </div>
           <div id="map-container" class="col-md-9"></div>
@@ -42,11 +41,10 @@
         </p>
       </div>
     </div><!-- /container-->
-
     <script src="js/secret.js"></script>
     <script src="js/libs/levenshtein.js"></script>
     <script src="js/app.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCMcRmHm0M2Z_WoNneWdwUrawwZqJAvb4Q&libraries=places&callback=mapview.initMapWithCurrentLocation"
-    async="async" defer="defer"></script>
+    async defer></script>
   </body>
 </html>
