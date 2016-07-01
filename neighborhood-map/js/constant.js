@@ -1,5 +1,6 @@
 types_all =
-["accounting",
+[
+"accounting",
 "airport",
 "amusement_park",
 "aquarium",

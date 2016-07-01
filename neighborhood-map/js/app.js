@@ -10,10 +10,9 @@ var MapView = function ()  {
   var pos;
   var map;
   var infowindow;
-  // var service;
-  var markers = [];
+  var markers;
+  var typeMarkersHashMap;
   var currentAnimateMarker;
-  // var currentQuery;
 };
 
 /**
@@ -79,7 +78,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       self.infoWindow.setContent('Location found.');
       self.map.setCenter(self.pos);
 
-      vm.animatePlace();//search all nearby by using empty search text
+      vm.animatePlace();//search all nearby
     }, function() {
       handleLocationError(true, self.infoWindow, self.map.getCenter());
     });
@@ -92,46 +91,21 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 /**
 * @description Search nearby with current user location using google.maps.places.PlacesService
 *               and place markers on the map with callback results and update ViewModel placeList
-*               TODO self.createMarker should be called from ViewModel not here remember MVVM
-*               comments: since google map api binding is not required here, so directly createMarker within callback
-* @param {string} searchtext: the searchtext from the search box
-*/
-MapView.prototype.searchMap = function(searchtext) {
-  var self = this;
-  console.log('MapView.prototype.searchMap with text: '+searchtext);
-  var service = new google.maps.places.PlacesService(self.map);
-  service.nearbySearch({
-    location: { lat: self.pos.lat, lng: self.pos.lng},
-    radius: 10000, //TODO add to ui
-    type: ['all']
-  },function(results, status) {
-    console.log('MapView.nearbySearchCallback');
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      if (vm.placeList.length===0){//clear all markers for new search results
-        self.deleteMarkers();
-      }
-      results.forEach(function(place){
-        self.createMarker(place);
-        vm.placeList.push(place);
-      });
-    }else{
-      alert("Oops something wrong with google.maps.places.PlacesServiceStatus");
-    }
-  });
-};
-
-/**
-* @description Search nearby with current user location using google.maps.places.PlacesService
-*               and place markers on the map with callback results and update ViewModel placeList
-*               TODO self.createMarker should be called from ViewModel not here remember MVVM
-*               comments: since google map api binding is not required here, so directly createMarker within callback
 * @param {string} searchtext: the searchtext from the search box
 */
 MapView.prototype.getAllPlacesOnMap = function() {
+  // vm.availableTypes.removeAll();//this change got dilivered to the system, so init as below
+  // vm.availableTypes.push("No Filter");
+  vm.availableTypes(["No Filter"]);
+  console.log(vm.availableTypes());
   var self = this;
   console.log('MapView.prototype.getAllPlacesOnMap');
   var service = new google.maps.places.PlacesService(self.map);
-  var currentTypes = types_short;
+  var currentTypes = types_all;
+  self.typeMarkersHashMap = {};
+  currentTypes.forEach(function(type){
+    self.typeMarkersHashMap[type] =[];
+  });
   currentTypes.forEach(function(type){
     service.nearbySearch({
       location: { lat: self.pos.lat, lng: self.pos.lng},
@@ -140,8 +114,10 @@ MapView.prototype.getAllPlacesOnMap = function() {
     },function(results, status) {
         console.log('MapView.nearbySearchCallback');
         if (status === google.maps.places.PlacesServiceStatus.OK) {
+          vm.availableTypes.push(type);
           results.forEach(function(place){
-            self.createMarker(place);
+            var marker = self.createMarker(place);
+            self.typeMarkersHashMap[type].push(marker);
             vm.placeList.push(place);
           });
         }else{//hancle type not on the current map view
@@ -157,19 +133,18 @@ MapView.prototype.getAllPlacesOnMap = function() {
 MapView.prototype.createMarker = function(place) {
   var self = this;
   console.log("MapView.createMarker");
-
   var marker = new google.maps.Marker({
     map: self.map,
     position: place.geometry.location,
     animation: google.maps.Animation.DROP
   });
   self.markers.push(marker);
-
   google.maps.event.addListener(marker, 'click', function() {
     self.infoWindow.setContent(place.name);
     self.infoWindow.open(self.map, this);
     vm.changePlace(place);
   });
+  return marker;
 };
 
 /**
@@ -208,6 +183,12 @@ MapView.prototype.deleteMarkers = function() {
   this.markers = [];
 };
 
+/**
+* @description Deletes all typeMarkersHashMap.
+*/
+MapView.prototype.deletetypeMarkers = function() {
+  this.typeMarkersHashMap ={};
+};
 /**
 * @description animate place corresponding marker using LatLng search TODO use hashmap
 * @param {[float,float]} LatLng:[lat,lng]
@@ -277,6 +258,24 @@ var ViewModel = function () {
 
     // this.alert = ko.observable("");
 
+    this.availableTypes = ko.observableArray(["No Filter"]);
+
+    this.selectedType = ko.observable(this.availableTypes[0]);
+
+    this.applyFilter = function(){
+      console.log(self.selectedType());
+      if (this.selectedType()==="No Filter"){
+        console.log('if');
+        mapview.setMapOnAll(mapview.map);
+      }else{
+        console.log("else");
+        mapview.clearMarkers();
+        mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
+            marker.setMap(mapview.map);
+        });
+      }
+    };
+
     this.placeList = ko.observableArray([]);
 
     initialPlaces.forEach(function(placeItem){
@@ -294,7 +293,9 @@ var ViewModel = function () {
     self.showInfo(place);
     };
 
+
 };
+
 
 /**
 * @description bind for the search box, new search clears old markers in mapview and this.placeList
@@ -304,7 +305,7 @@ ViewModel.prototype.animatePlace = function () {
   var self = this;
   this.placeList.removeAll();
   mapview.deleteMarkers();
-  // mapview.searchMap(self.searchtext());
+  mapview.deletetypeMarkers();
   mapview.getAllPlacesOnMap();
 };
 
@@ -322,7 +323,6 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
     data: 'client_id=' + client_id + '&client_secret=' + client_secret + '&v=20150815&ll=' + place.geometry.location.lat()+',' +place.geometry.location.lng()+'&limit=5',
     async: true,
     success: function(data) {
-      console.log(data);
       var nameDistances = [];
       data.response.venues.forEach(function(item){
         var dist = Levenshtein.get(place.name,item.name);

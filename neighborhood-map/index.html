@@ -12,19 +12,11 @@
     <script src="js/libs/bootstrap.min.js"></script>
   </head>
   <body>
-    <input id="pac-input-neighborhood" class="controls col-md-6" type="text" placeholder="type a neighborhood">
-    <input id="pac-input-filter" class="controls col-md-6" type="text" placeholder="type a filter">
+    <input id="pac-input-neighborhood" class="controls col-md-9" type="text" placeholder="type a neighborhood">
+    <select data-bind="options: availableTypes, optionsText:$data, value:selectedType, event: {change: applyFilter}">
+    </select> <!--http://stackoverflow.com/questions/12892066/knockoutjs-click-event-invoked-on-every-option-in-select-->
     <div class="container">
       <div class="row">
-        <div id="input-area" class="center col-md-12">
-          <form data-bind="submit: animatePlace">
-              <input type="text" id="search-text" name="search-text" data-bind="textInput:searchtext" class="col-md-9">
-              <button type="submit" name="search-button" class="col-md-3">search Neighborhood</button>
-          </form>
-          <p>
-            Search: <strong data-bind="text:searchtext"></strong> around this neighborhood?
-          </p>
-        </div>
       </div>
       <div class="row">
         <div id="map-outer" class="col-md-12">
