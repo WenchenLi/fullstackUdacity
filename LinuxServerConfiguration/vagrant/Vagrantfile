@@ -1,0 +1,20 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+
+# Installation script
+$script = <<SCRIPT
+echo Provisioning system ...
+apt-get install cowsay unzip
+rm /usr/share/cowsay/cows/*odo*
+SCRIPT
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # config.vm.provision "shell", path: "pg_config.sh"
+  config.vm.provision "shell", inline: $script
+  # config.vm.box = "hashicorp/precise32"
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+end
