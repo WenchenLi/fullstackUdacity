@@ -48,7 +48,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       lat:self.map.getCenter().lat(),
       lng:self.map.getCenter().lng()
     };
-    // vm.initNewPlacesOnMap();
+    vm.initNewPlacesOnMap();
   });
 
   this.map.addListener('tilesloaded', function() {
@@ -114,7 +114,7 @@ MapView.prototype.getAllPlacesOnMap = function() {
   var self = this;
   console.log('MapView.prototype.getAllPlacesOnMap');
   var service = new google.maps.places.PlacesService(self.map);
-  var currentTypes = types_short;
+  var currentTypes = types_all;
   self.typeMarkersHashMap = {};
   currentTypes.forEach(function(type){
     self.typeMarkersHashMap[type] =[];
@@ -309,14 +309,32 @@ var ViewModel = function () {
 
     self.filteredList = ko.computed(function(){
         var filterText = self.filterText().toLowerCase();
+        if (filterText===""){
+          mapview.setMapOnAll(mapview.map);
+        }else{
+          mapview.clearMarkers();
+          if (filterText in mapview.typeMarkersHashMap && mapview.typeMarkersHashMap[filterText].length>0){
+            mapview.typeMarkersHashMap[filterText].forEach(function(marker){
+                marker.setMap(mapview.map);
+            });
+          }
+        }
         var targetList = [];
         if (self.placeList()){
           self.placeList().forEach(function(place){
-            if (place.types.includes(filterText)) targetList.push(place);
+            if (place.types.includes(filterText))targetList.push(place);
           });
         }
         if(targetList.length===0)self.alert("Sorry, this filter does not apply");
         else self.alert("");
+
+
+        if (targetList.length!==0){
+          mapview.clearMarkers();
+          targetList.forEach(function(place){
+          mapview.createMarker(place);
+          });
+        }
         return targetList;
     }, this);
 
