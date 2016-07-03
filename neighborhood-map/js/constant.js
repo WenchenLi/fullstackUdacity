@@ -92,5 +92,5 @@ types_all =
 "veterinary_care",
 "zoo"];
 
-types_short = ["church","hospital",
+types_short = ["church","hospital","cafe","pharmacy","library",
 "book_store","school","shopping_mall","university","stadium","police","store","park","pharmacy","gas_station"];

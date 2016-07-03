@@ -110,11 +110,11 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 MapView.prototype.getAllPlacesOnMap = function() {
   // vm.availableTypes.removeAll();//this change got dilivered to the system, so init as below
   // vm.availableTypes.push("No Filter");
-  vm.availableTypes(["No Filter"]);
+  vm.availableTypes([]);
   var self = this;
   console.log('MapView.prototype.getAllPlacesOnMap');
   var service = new google.maps.places.PlacesService(self.map);
-  var currentTypes = types_all;
+  var currentTypes = types_short;
   self.typeMarkersHashMap = {};
   currentTypes.forEach(function(type){
     self.typeMarkersHashMap[type] =[];
@@ -244,6 +244,30 @@ MapView.prototype.setMarkerAnimation = function(marker,state){
   }
 };
 
+/**
+* @description set marker on based on given category
+* @param {string} category
+*/
+MapView.prototype.setMarkerBasedOnCategory = function(category){
+    if (category in mapview.typeMarkersHashMap && mapview.typeMarkersHashMap[category].length>0){
+    mapview.typeMarkersHashMap[category].forEach(function(marker){
+        marker.setMap(mapview.map);
+    });
+  }
+};
+
+/**
+* @description set marker on based on given category
+* @param {string} category
+*/
+MapView.prototype.createMarkerGivenPlaceList = function(list){
+    var self = this;
+    self.clearMarkers();
+    list.forEach(function(place){
+      self.createMarker(place);
+    });
+
+};
 //M
 /**
 * @description Place data model
@@ -269,26 +293,29 @@ var ViewModel = function () {
 
     this.hereNow = ko.observable("");
 
+    self.filterCategoryText = ko.observable("");
+
     self.filterText = ko.observable("");
 
     this.alert = ko.observable("");
 
-    this.availableTypes = ko.observableArray(["No Filter"]);
+    this.availableTypes = ko.observableArray([]);
 
     this.selectedType = ko.observable(this.availableTypes[0]);
 
     // this apply filter as dropdown
-    this.applyFilter = function(){
-      // console.log(self.selectedType());
-      if (this.selectedType()==="No Filter"){
-        mapview.setMapOnAll(mapview.map);
-      }else{
-        mapview.clearMarkers();
-        mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
-            marker.setMap(mapview.map);
-        });
-      }
-    };
+    // this.availableTypes = ko.observableArray(["No Filter"]);
+    // this.applyFilter = function(){
+    //   // console.log(self.selectedType());
+    //   if (this.selectedType()==="No Filter"){
+    //     mapview.setMapOnAll(mapview.map);
+    //   }else{
+    //     mapview.clearMarkers();
+    //     mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
+    //         marker.setMap(mapview.map);
+    //     });
+    //   }
+    // };
 
     this.placeList = ko.observableArray([]);
 
@@ -308,34 +335,53 @@ var ViewModel = function () {
     };
 
     self.filteredList = ko.computed(function(){
+        var filterCategoryText = self.filterCategoryText().toLowerCase();
         var filterText = self.filterText().toLowerCase();
-        if (filterText===""){
+        var targetList = [];
+
+        if (filterText && filterCategoryText) {
+            alert("Sorry, we only support filter by either text match or category, not filter by both");
+            self.filterText("");
+            self.filterCategoryText("");
+            mapview.setMapOnAll(mapview.map);
+            return self.placeList();
+        }
+
+        //category
+        if (filterCategoryText==="" && filterText===""){
           mapview.setMapOnAll(mapview.map);
-        }else{
-          mapview.clearMarkers();
-          if (filterText in mapview.typeMarkersHashMap && mapview.typeMarkersHashMap[filterText].length>0){
-            mapview.typeMarkersHashMap[filterText].forEach(function(marker){
-                marker.setMap(mapview.map);
+          return self.placeList();
+        }
+        if (filterCategoryText){//only has category filter text
+          if (self.placeList()){
+            self.placeList().forEach(function(place){
+              if (place.types.includes(filterCategoryText))targetList.push(place);
             });
           }
+          if(targetList.length===0){
+             self.alert("Sorry, this categorical filter does not apply");
+             mapview.clearMarkers();
+          }else{
+             self.alert("");
+             mapview.createMarkerGivenPlaceList(targetList);
+           }
+          return targetList;
+        }else{//only has string match text
+          if (self.placeList()){
+            self.placeList().forEach(function(place){
+              if (place.name.toLowerCase().indexOf(filterText)>=0)targetList.push(place);
+            });
+          }
+          if(targetList.length===0){
+             self.alert("Sorry, this text match filter does not apply");
+             mapview.clearMarkers();
+          }else{
+             self.alert("");
+             mapview.createMarkerGivenPlaceList(targetList);
+           }
+          return targetList;
         }
-        var targetList = [];
-        if (self.placeList()){
-          self.placeList().forEach(function(place){
-            if (place.types.includes(filterText))targetList.push(place);
-          });
-        }
-        if(targetList.length===0)self.alert("Sorry, this filter does not apply");
-        else self.alert("");
 
-
-        if (targetList.length!==0){
-          mapview.clearMarkers();
-          targetList.forEach(function(place){
-          mapview.createMarker(place);
-          });
-        }
-        return targetList;
     }, this);
 
     // self.alertWithTimeOut = ko.computed(function(text){

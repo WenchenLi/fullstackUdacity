@@ -70,3 +70,9 @@ html, body {
   background: #73AB31;
   padding: 10px;
 }
+
+.categoryListItem{
+  border-radius: 10px;
+  background: #9999ff;
+  padding: 10px;
+}
