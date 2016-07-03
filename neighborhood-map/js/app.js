@@ -32,16 +32,31 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
   var input = document.getElementById('pac-input-neighborhood');
   var searchBox = new google.maps.places.SearchBox(input);
   // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);//when want a compact view in the map
-  this.map.addListener('center_changed', function() {vm.animatePlace();});
+  this.map.addListener('center_changed', function() {
+    console.log("center changed");
+    // vm.initNewPlacesOnMap();
+  });
+  this.map.addListener('zoom_changed', function() {
+    console.log("zoom changed");
+    // vm.initNewPlacesOnMap();
+  });
   // Bias the SearchBox results towards current map's viewport.
   this.map.addListener('bounds_changed', function() {
+    console.log("bounds changed");
     searchBox.setBounds(self.map.getBounds());
     self.pos = {
       lat:self.map.getCenter().lat(),
       lng:self.map.getCenter().lng()
     };
+    // vm.initNewPlacesOnMap();
+  });
+
+  this.map.addListener('tilesloaded', function() {
+    console.log("tiles loaded");
+    vm.initNewPlacesOnMap();
   });
   searchBox.addListener('places_changed', function() {
+    console.log("places_changed");
     var places = searchBox.getPlaces();
     if (places.length === 0) {
       return;
@@ -51,10 +66,10 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
     places.forEach(function(item) {
       var icon = {
         url: item.icon,
-        size: new google.maps.Size(71, 71),
+        size: new google.maps.Size(30, 30),
         origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(17, 34),
-        scaledSize: new google.maps.Size(25, 25)
+        anchor: new google.maps.Point(10, 10),
+        scaledSize: new google.maps.Size(10, 10)
       };
 
       if (item.geometry.viewport) {
@@ -65,6 +80,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       }
     });
     self.map.fitBounds(bounds);
+    self.map.setCenter(self.map.getCenter());
   });
 
   if (navigator.geolocation) {
@@ -77,8 +93,6 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
       self.infoWindow.setPosition(self.pos);
       self.infoWindow.setContent('Location found.');
       self.map.setCenter(self.pos);
-
-      vm.animatePlace();//search all nearby
     }, function() {
       handleLocationError(true, self.infoWindow, self.map.getCenter());
     });
@@ -97,11 +111,10 @@ MapView.prototype.getAllPlacesOnMap = function() {
   // vm.availableTypes.removeAll();//this change got dilivered to the system, so init as below
   // vm.availableTypes.push("No Filter");
   vm.availableTypes(["No Filter"]);
-  console.log(vm.availableTypes());
   var self = this;
   console.log('MapView.prototype.getAllPlacesOnMap');
   var service = new google.maps.places.PlacesService(self.map);
-  var currentTypes = types_all;
+  var currentTypes = types_short;
   self.typeMarkersHashMap = {};
   currentTypes.forEach(function(type){
     self.typeMarkersHashMap[type] =[];
@@ -193,7 +206,7 @@ MapView.prototype.deletetypeMarkers = function() {
 * @description animate place corresponding marker using LatLng search TODO use hashmap
 * @param {[float,float]} LatLng:[lat,lng]
 */
-MapView.prototype.animatePlace = function(place){
+MapView.prototype.initNewPlacesOnMap = function(place){
   var tempmapview = this;
   var LatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
   if (this.currentAnimateMarker){
@@ -252,23 +265,24 @@ var Place = function (data) {
 var ViewModel = function () {
     var self = this;
 
-    this.searchtext = ko.observable("");
+    // this.searchtext = ko.observable("");
 
     this.hereNow = ko.observable("");
 
-    // this.alert = ko.observable("");
+    self.filterText = ko.observable("");
+
+    this.alert = ko.observable("");
 
     this.availableTypes = ko.observableArray(["No Filter"]);
 
     this.selectedType = ko.observable(this.availableTypes[0]);
 
+    // this apply filter as dropdown
     this.applyFilter = function(){
-      console.log(self.selectedType());
+      // console.log(self.selectedType());
       if (this.selectedType()==="No Filter"){
-        console.log('if');
         mapview.setMapOnAll(mapview.map);
       }else{
-        console.log("else");
         mapview.clearMarkers();
         mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
             marker.setMap(mapview.map);
@@ -293,7 +307,26 @@ var ViewModel = function () {
     self.showInfo(place);
     };
 
+    self.filteredList = ko.computed(function(){
+        var filterText = self.filterText().toLowerCase();
+        var targetList = [];
+        if (self.placeList()){
+          self.placeList().forEach(function(place){
+            if (place.types.includes(filterText)) targetList.push(place);
+          });
+        }
+        if(targetList.length===0)self.alert("Sorry, this filter does not apply");
+        else self.alert("");
+        return targetList;
+    }, this);
 
+    // self.alertWithTimeOut = ko.computed(function(text){
+    //     console.log(self);
+    //     self.alert(text);
+    //     setTimeout(function(){
+    //         self.alert("");
+    //     }, 1000);
+    // }, this);
 };
 
 
@@ -301,7 +334,7 @@ var ViewModel = function () {
 * @description bind for the search box, new search clears old markers in mapview and this.placeList
 * @param {formElement} the html searchbox element
 */
-ViewModel.prototype.animatePlace = function () {
+ViewModel.prototype.initNewPlacesOnMap = function () {
   var self = this;
   this.placeList.removeAll();
   mapview.deleteMarkers();
@@ -348,7 +381,7 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
 */
 ViewModel.prototype.showInfo = function (placeItem) {
     this.ajaxFourSquare(placeItem);
-    mapview.animatePlace(placeItem);
+    mapview.initNewPlacesOnMap(placeItem);
 };
 /**
 * @description handler for location error when location current user position
