@@ -13,7 +13,7 @@ Supported features are growing!
 * use google map api to locate the neighborhood area
 * use knockout.js to keep track of the filter and update the view in map
 * foursquare api tell the current number of people check-in onclick the name of the place in the listView.
-
+* A filter based on the types of the place.
 ## Quick Run
 To test the implementation please navigate the root folder of the project
 and to setup the localhost use:
