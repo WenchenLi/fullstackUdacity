@@ -1,9 +1,3 @@
-#compatible with some python3 module call
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from flask import session as login_session
 from flask import make_response
@@ -25,14 +19,15 @@ import json
 import requests
 
 app = Flask(__name__)
+app.secret_key = 'super_secret_key'
 
 CLIENT_ID = json.loads(
-    open('g_client_secrets.json', 'r').read())['web']['client_id']
+    open('/var/www/catalog/catalog/g_client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Item Catalog Application"
 
 
 # Connect to Database and create database session
-engine = create_engine('sqlite:///catalogitemwithusers.db')
+engine = create_engine('sqlite:///catalogdb')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -70,10 +65,10 @@ def fbconnect():
     access_token = request.data
     print "access token received %s " % access_token
 
-    app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
+    app_id = json.loads(open('/var/www/catalog/catalog/fb_client_secrets.json', 'r').read())[
         'web']['app_id']
     app_secret = json.loads(
-        open('fb_client_secrets.json', 'r').read())['web']['app_secret']
+        open('/var/www/catalog/catalog/fb_client_secrets.json', 'r').read())['web']['app_secret']
     url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
         app_id, app_secret, access_token)
     h = httplib2.Http()
@@ -150,7 +145,7 @@ def gconnect():
 
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('g_client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets('/var/www/catalog/catalog/client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
