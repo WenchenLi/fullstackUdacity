@@ -3,10 +3,10 @@
 //MapView
 
 /**
-* @description Represents a mapview
-* @constructor
-*/
-var MapView = function ()  {
+ * @description Represents a mapview
+ * @constructor
+ */
+var MapView = function() {
   var pos;
   var map;
   var infowindow;
@@ -16,17 +16,22 @@ var MapView = function ()  {
 };
 
 /**
-* @description initial map with current user location, a search box in the map use to go to other place
-*/
-MapView.prototype.initMapWithCurrentLocation  =  function(){
+ * @description initial map with current user location, a search box in the map use to go to other place
+ */
+MapView.prototype.initMapWithCurrentLocation = function() {
   var self = this;
 
   self.map = new google.maps.Map(document.getElementById('map-container'), {
-    center: {lat: -33.867, lng: 151.195},
+    center: {
+      lat: -33.867,
+      lng: 151.195
+    },
     scrollwheel: true,
-    zoom:  15
+    zoom: 15
   });
-  self.infoWindow = new google.maps.InfoWindow({map: self.map});
+  self.infoWindow = new google.maps.InfoWindow({
+    map: self.map
+  });
 
   // add search area
   var input = document.getElementById('pac-input-neighborhood');
@@ -45,8 +50,8 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
     console.log("bounds changed");
     searchBox.setBounds(self.map.getBounds());
     self.pos = {
-      lat:self.map.getCenter().lat(),
-      lng:self.map.getCenter().lng()
+      lat: self.map.getCenter().lat(),
+      lng: self.map.getCenter().lng()
     };
     vm.initNewPlacesOnMap();
   });
@@ -103,10 +108,10 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
 };
 
 /**
-* @description Search nearby with current user location using google.maps.places.PlacesService
-*               and place markers on the map with callback results and update ViewModel placeList
-* @param {string} searchtext: the searchtext from the search box
-*/
+ * @description Search nearby with current user location using google.maps.places.PlacesService
+ *               and place markers on the map with callback results and update ViewModel placeList
+ * @param {string} searchtext: the searchtext from the search box
+ */
 MapView.prototype.getAllPlacesOnMap = function() {
   // vm.availableTypes.removeAll();//this change got dilivered to the system, so init as below
   // vm.availableTypes.push("No Filter");
@@ -116,33 +121,36 @@ MapView.prototype.getAllPlacesOnMap = function() {
   var service = new google.maps.places.PlacesService(self.map);
   var currentTypes = types_short;
   self.typeMarkersHashMap = {};
-  currentTypes.forEach(function(type){
-    self.typeMarkersHashMap[type] =[];
+  currentTypes.forEach(function(type) {
+    self.typeMarkersHashMap[type] = [];
   });
-  currentTypes.forEach(function(type){
+  currentTypes.forEach(function(type) {
     service.nearbySearch({
-      location: { lat: self.pos.lat, lng: self.pos.lng},
+      location: {
+        lat: self.pos.lat,
+        lng: self.pos.lng
+      },
       radius: 1000, //TODO add to ui
       type: [type]
-    },function(results, status) {
-        console.log('MapView.nearbySearchCallback');
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          vm.availableTypes.push(type);
-          results.forEach(function(place){
-            var marker = self.createMarker(place);
-            self.typeMarkersHashMap[type].push(marker);
-            vm.placeList.push(place);
-          });
-        }else{//hancle type not on the current map view
-          console.log("No " + type + " is available at here.");
-        }
-      });
+    }, function(results, status) {
+      console.log('MapView.nearbySearchCallback');
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        vm.availableTypes.push(type);
+        results.forEach(function(place) {
+          var marker = self.createMarker(place);
+          self.typeMarkersHashMap[type].push(marker);
+          vm.placeList.push(place);
+        });
+      } else { //hancle type not on the current map view
+        console.log("No " + type + " is available at here.");
+      }
     });
+  });
 };
 /**
-* @description create marker given place data and push marker to mapview.markers
-* @param {Place} data - place:one of the callback results from nearbySearchCallback
-*/
+ * @description create marker given place data and push marker to mapview.markers
+ * @param {Place} data - place:one of the callback results from nearbySearchCallback
+ */
 MapView.prototype.createMarker = function(place) {
   var self = this;
   console.log("MapView.createMarker");
@@ -161,244 +169,243 @@ MapView.prototype.createMarker = function(place) {
 };
 
 /**
-* @description // Sets the map on all markers in the array.
-*/
-MapView.prototype.setMapOnAll = function (map) {
-  if (this.markers===undefined){
+ * @description // Sets the map on all markers in the array.
+ */
+MapView.prototype.setMapOnAll = function(map) {
+  if (this.markers === undefined) {
     this.marker = [];
-  }else{
-    this.markers.forEach(function(marker){
+  } else {
+    this.markers.forEach(function(marker) {
       marker.setMap(map);
-      }
-    );
+    });
   }
 };
 
 /**
-* @description Removes the markers from the map, but keeps them in the array.
-*/
+ * @description Removes the markers from the map, but keeps them in the array.
+ */
 MapView.prototype.clearMarkers = function() {
   this.setMapOnAll(null);
 };
 
 /**
-* @description Shows any markers currently in the array.
-*/
+ * @description Shows any markers currently in the array.
+ */
 MapView.prototype.showMarkers = function() {
   this.setMapOnAll(this.map);
 };
 
 /**
-* @description Deletes all markers in the array by removing references to them.
-*/
+ * @description Deletes all markers in the array by removing references to them.
+ */
 MapView.prototype.deleteMarkers = function() {
   this.clearMarkers();
   this.markers = [];
 };
 
 /**
-* @description Deletes all typeMarkersHashMap.
-*/
+ * @description Deletes all typeMarkersHashMap.
+ */
 MapView.prototype.deletetypeMarkers = function() {
-  this.typeMarkersHashMap ={};
+  this.typeMarkersHashMap = {};
 };
 /**
-* @description animate place corresponding marker using LatLng search TODO use hashmap
-* @param {[float,float]} LatLng:[lat,lng]
-*/
-MapView.prototype.initNewPlacesOnMap = function(place){
+ * @description animate place corresponding marker using LatLng search TODO use hashmap
+ * @param {[float,float]} LatLng:[lat,lng]
+ */
+MapView.prototype.initNewPlacesOnMap = function(place) {
   var tempmapview = this;
-  var LatLng = [place.geometry.location.lat(),place.geometry.location.lng()];
-  if (this.currentAnimateMarker){
-    this.setMarkerAnimation(this.currentAnimateMarker,false);
+  var LatLng = [place.geometry.location.lat(), place.geometry.location.lng()];
+  if (this.currentAnimateMarker) {
+    this.setMarkerAnimation(this.currentAnimateMarker, false);
   }
 
-  this.markers.forEach(function(marker){
-    if (marker.position.lat()==LatLng[0] && marker.position.lng()==LatLng[1]){
-        tempmapview.setMarkerAnimation(marker,true);
+  this.markers.forEach(function(marker) {
+    if (marker.position.lat() == LatLng[0] && marker.position.lng() == LatLng[1]) {
+      tempmapview.setMarkerAnimation(marker, true);
     }
   });
-  if (this.currentAnimateMarker===null){
+  if (this.currentAnimateMarker === null) {
     alert("sorry," + place.name + " is not marked on the map");
-  }else{
+  } else {
     console.log("place found");
   }
 };
 
 /**
-* @description toggle marker
-* @param {marker} marker
-* @param {boolean} state
-*/
-MapView.prototype.setMarkerAnimation = function(marker,state){
-  if (state === true){
+ * @description toggle marker
+ * @param {marker} marker
+ * @param {boolean} state
+ */
+MapView.prototype.setMarkerAnimation = function(marker, state) {
+  if (state === true) {
     marker.setAnimation(google.maps.Animation.BOUNCE);
     this.currentAnimateMarker = marker;
     var self = this;
-    setTimeout(function(){
-        marker.setAnimation(null);
+    setTimeout(function() {
+      marker.setAnimation(null);
     }, 1500);
-  }else{
+  } else {
     marker.setAnimation(null);
     this.currentAnimateMarker = null;
   }
 };
 
 /**
-* @description set marker on based on given category
-* @param {string} category
-*/
-MapView.prototype.setMarkerBasedOnCategory = function(category){
-    if (category in mapview.typeMarkersHashMap && mapview.typeMarkersHashMap[category].length>0){
-    mapview.typeMarkersHashMap[category].forEach(function(marker){
-        marker.setMap(mapview.map);
+ * @description set marker on based on given category
+ * @param {string} category
+ */
+MapView.prototype.setMarkerBasedOnCategory = function(category) {
+  if (category in mapview.typeMarkersHashMap && mapview.typeMarkersHashMap[category].length > 0) {
+    mapview.typeMarkersHashMap[category].forEach(function(marker) {
+      marker.setMap(mapview.map);
     });
   }
 };
 
 /**
-* @description set marker on based on given category
-* @param {string} category
-*/
-MapView.prototype.createMarkerGivenPlaceList = function(list){
-    var self = this;
-    self.clearMarkers();
-    list.forEach(function(place){
-      self.createMarker(place);
-    });
+ * @description set marker on based on given category
+ * @param {string} category
+ */
+MapView.prototype.createMarkerGivenPlaceList = function(list) {
+  var self = this;
+  self.clearMarkers();
+  list.forEach(function(place) {
+    self.createMarker(place);
+  });
 
 };
 //M
 /**
-* @description Place data model
-* @constructor
-* @param {Place} data - place:one of the callback results from nearbySearchCallback
-*/
-var Place = function (data) {
-    this.name = ko.observable(data.name);
-    this.location = ko.observable(data.geometry.location);
-    this.types = data.types;
+ * @description Place data model
+ * @constructor
+ * @param {Place} data - place:one of the callback results from nearbySearchCallback
+ */
+var Place = function(data) {
+  this.name = ko.observable(data.name);
+  this.location = ko.observable(data.geometry.location);
+  this.types = data.types;
 };
 
 
 //VM  view model has been described as a state of the data in the model
 /**
-* @description ViewModel to bind html
-* @constructor
-*/
-var ViewModel = function () {
-    var self = this;
+ * @description ViewModel to bind html
+ * @constructor
+ */
+var ViewModel = function() {
+  var self = this;
 
-    // this.searchtext = ko.observable("");
+  // this.searchtext = ko.observable("");
 
-    this.hereNow = ko.observable("");
+  this.hereNow = ko.observable("");
 
-    self.filterCategoryText = ko.observable("");
+  self.filterCategoryText = ko.observable("");
 
-    self.filterText = ko.observable("");
+  self.filterText = ko.observable("");
 
-    this.alert = ko.observable("");
+  this.alert = ko.observable("");
 
-    this.availableTypes = ko.observableArray();
+  this.availableTypes = ko.observableArray();
 
-    this.selectedType = ko.observable(this.availableTypes[0]);
+  this.selectedType = ko.observable(this.availableTypes[0]);
 
-    // this apply filter as dropdown
-    // this.availableTypes = ko.observableArray(["No Filter"]);
-    // this.applyFilter = function(){
-    //   // console.log(self.selectedType());
-    //   if (this.selectedType()==="No Filter"){
-    //     mapview.setMapOnAll(mapview.map);
-    //   }else{
-    //     mapview.clearMarkers();
-    //     mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
-    //         marker.setMap(mapview.map);
-    //     });
-    //   }
-    // };
+  // this apply filter as dropdown
+  // this.availableTypes = ko.observableArray(["No Filter"]);
+  // this.applyFilter = function(){
+  //   // console.log(self.selectedType());
+  //   if (this.selectedType()==="No Filter"){
+  //     mapview.setMapOnAll(mapview.map);
+  //   }else{
+  //     mapview.clearMarkers();
+  //     mapview.typeMarkersHashMap[this.selectedType()].forEach(function(marker){
+  //         marker.setMap(mapview.map);
+  //     });
+  //   }
+  // };
 
-    this.placeList = ko.observableArray([]);
+  this.placeList = ko.observableArray([]);
 
-    initialPlaces.forEach(function(placeItem){
-        self.placeList.push(new Place(placeItem));
-    });
+  initialPlaces.forEach(function(placeItem) {
+    self.placeList.push(new Place(placeItem));
+  });
 
-    this.currentPlace = self.placeList()[0];//ko.observable(self.placeList()[0]);
+  this.currentPlace = self.placeList()[0]; //ko.observable(self.placeList()[0]);
 
-    this.changePlace = function(place){
-      if (place ==self.currentPlace){//such way avoid unnecessary recompuation
-        alert("Aren't you just asked for the same place?");
-        return;
-      }
+  this.changePlace = function(place) {
+    if (place == self.currentPlace) { //such way avoid unnecessary recompuation
+      alert("Aren't you just asked for the same place?");
+      return;
+    }
     self.currentPlace = place;
     self.showInfo(place);
-    };
+  };
 
-    self.filteredList = ko.computed(function(){
-        var filterCategoryText = self.filterCategoryText().toLowerCase();
-        var filterText = self.filterText().toLowerCase();
-        var targetList = [];
+  self.filteredList = ko.computed(function() {
+    var filterCategoryText = self.filterCategoryText().toLowerCase();
+    var filterText = self.filterText().toLowerCase();
+    var targetList = [];
 
-        if (filterText && filterCategoryText) {
-          alert("Sorry, we only support filter by either text match or category, not filter by both");
-          self.filterText("");
-          self.filterCategoryText("");
-          mapview.setMapOnAll(mapview.map);
-          return self.placeList();
-        }
+    if (filterText && filterCategoryText) {
+      alert("Sorry, we only support filter by either text match or category, not filter by both");
+      self.filterText("");
+      self.filterCategoryText("");
+      mapview.setMapOnAll(mapview.map);
+      return self.placeList();
+    }
 
-        //category
-        if (filterCategoryText==="" && filterText===""){
-          mapview.setMapOnAll(mapview.map);
-          return self.placeList();
-        }
-        if (filterCategoryText){//only has category filter text
-          if (self.placeList()){
-            self.placeList().forEach(function(place){
-              if (place.types.includes(filterCategoryText))targetList.push(place);
-            });
-          }
-          if(targetList.length===0){
-             self.alert("Sorry, this categorical filter does not apply");
-             mapview.clearMarkers();
-          }else{
-             self.alert("");
-             mapview.createMarkerGivenPlaceList(targetList);
-           }
-          return targetList;
-        }else{//only has string match text
-          if (self.placeList()){
-            self.placeList().forEach(function(place){
-              if (place.name.toLowerCase().indexOf(filterText)>=0)targetList.push(place);
-            });
-          }
-          if(targetList.length===0){
-             self.alert("Sorry, this text match filter does not apply");
-             mapview.clearMarkers();
-          }else{
-             self.alert("");
-             mapview.createMarkerGivenPlaceList(targetList);
-           }
-          return targetList;
-        }
+    //category
+    if (filterCategoryText === "" && filterText === "") {
+      mapview.setMapOnAll(mapview.map);
+      return self.placeList();
+    }
+    if (filterCategoryText) { //only has category filter text
+      if (self.placeList()) {
+        self.placeList().forEach(function(place) {
+          if (place.types.includes(filterCategoryText)) targetList.push(place);
+        });
+      }
+      if (targetList.length === 0) {
+        self.alert("Sorry, this categorical filter does not apply");
+        mapview.clearMarkers();
+      } else {
+        self.alert("");
+        mapview.createMarkerGivenPlaceList(targetList);
+      }
+      return targetList;
+    } else { //only has string match text
+      if (self.placeList()) {
+        self.placeList().forEach(function(place) {
+          if (place.name.toLowerCase().indexOf(filterText) >= 0) targetList.push(place);
+        });
+      }
+      if (targetList.length === 0) {
+        self.alert("Sorry, this text match filter does not apply");
+        mapview.clearMarkers();
+      } else {
+        self.alert("");
+        mapview.createMarkerGivenPlaceList(targetList);
+      }
+      return targetList;
+    }
 
-    }, this);
+  }, this);
 
-    // self.alertWithTimeOut = ko.computed(function(text){
-    //     console.log(self);
-    //     self.alert(text);
-    //     setTimeout(function(){
-    //         self.alert("");
-    //     }, 1000);
-    // }, this);
+  // self.alertWithTimeOut = ko.computed(function(text){
+  //     console.log(self);
+  //     self.alert(text);
+  //     setTimeout(function(){
+  //         self.alert("");
+  //     }, 1000);
+  // }, this);
 };
 
 
 /**
-* @description bind for the search box, new search clears old markers in mapview and this.placeList
-* @param {formElement} the html searchbox element
-*/
-ViewModel.prototype.initNewPlacesOnMap = function () {
+ * @description bind for the search box, new search clears old markers in mapview and this.placeList
+ * @param {formElement} the html searchbox element
+ */
+ViewModel.prototype.initNewPlacesOnMap = function() {
   var self = this;
   this.placeList.removeAll();
   mapview.deleteMarkers();
@@ -407,32 +414,33 @@ ViewModel.prototype.initNewPlacesOnMap = function () {
 };
 
 /**
-* @description get Foursquare data via ajax call, callback return count of people given the clicked place
-* @param {place} current clicked place in the listView
-*/
-ViewModel.prototype.ajaxFourSquare = function (place) {
+ * @description get Foursquare data via ajax call, callback return count of people given the clicked place
+ * @param {place} current clicked place in the listView
+ */
+ViewModel.prototype.ajaxFourSquare = function(place) {
   var self = this;
   /* get Foursquare data via ajax call */
   $.ajax({
     type: 'GET',
     dataType: 'json',
     url: 'https://api.foursquare.com/v2/venues/search',
-    data: 'client_id=' + client_id + '&client_secret=' + client_secret + '&v=20150815&ll=' + place.geometry.location.lat()+',' +place.geometry.location.lng()+'&limit=5',
+    data: 'client_id=' + client_id + '&client_secret=' + client_secret + '&v=20150815&ll=' + place.geometry.location.lat() + ',' + place.geometry.location.lng() + '&limit=5',
     async: true,
     success: function(data) {
       var nameDistances = [];
-      data.response.venues.forEach(function(item){
-        var dist = Levenshtein.get(place.name,item.name);
+      data.response.venues.forEach(function(item) {
+        var dist = Levenshtein.get(place.name, item.name);
         nameDistances.push(dist);
       });
       var index = indexOfMinValue(nameDistances);
       var minDist = nameDistances[index];
-      if (minDist>3){
+      if (minDist > 3) {
         alert("Sorry " + place.name + " is not registered at Foursquare.");
-      }else{
+      } else {
         console.log(data.response.venues[index].name);
-        self.hereNow("There are "+data.response.venues[index].hereNow.count + " people at " + data.response.venues[index].name);}
-      },
+        self.hereNow("There are " + data.response.venues[index].hereNow.count + " people at " + data.response.venues[index].name);
+      }
+    },
     error: function(error) {
       alert('Foursquare data is not available');
     }
@@ -440,39 +448,39 @@ ViewModel.prototype.ajaxFourSquare = function (place) {
 };
 
 /**
-* @description show how many people are there (via AJAX request), bounce the marker once
-* @param {placeItem} abstract level of play that can be put at listView and on the map
-*/
-ViewModel.prototype.showInfo = function (placeItem) {
-    this.ajaxFourSquare(placeItem);
-    mapview.initNewPlacesOnMap(placeItem);
+ * @description show how many people are there (via AJAX request), bounce the marker once
+ * @param {placeItem} abstract level of play that can be put at listView and on the map
+ */
+ViewModel.prototype.showInfo = function(placeItem) {
+  this.ajaxFourSquare(placeItem);
+  mapview.initNewPlacesOnMap(placeItem);
 };
 /**
-* @description handler for location error when location current user position
-* @param {boolean} browserHasGeolocation
-* @param {infoWindow} infoWindow
-* @param {position} pos
-*/
+ * @description handler for location error when location current user position
+ * @param {boolean} browserHasGeolocation
+ * @param {infoWindow} infoWindow
+ * @param {position} pos
+ */
 var handleLocationError = function(browserHasGeolocation, infoWindow, pos) {
   infoWindow.setPosition(pos);
   infoWindow.setContent(browserHasGeolocation ?
-                        'Error: The Geolocation service failed.' :
-                        'Error: Your browser doesn\'t support geolocation.');
+    'Error: The Geolocation service failed.' :
+    'Error: Your browser doesn\'t support geolocation.');
 };
 
 /**
-* @description error handler for google map api
-*/
+ * @description error handler for google map api
+ */
 var googleError = function() {
   alert("Sorry google map api is not working, try refresh please.");
 };
 
 /**
-* @description find index of min element in array
-* @param {array} array
-* @return {int} index,
-*/
-var indexOfMinValue = function(array){
+ * @description find index of min element in array
+ * @param {array} array
+ * @return {int} index,
+ */
+var indexOfMinValue = function(array) {
   var index = 0;
   var value = array[0];
   for (var i = 1; i < array.length; i++) {
@@ -483,33 +491,52 @@ var indexOfMinValue = function(array){
   }
   return index;
 };
-var initialPlaces = [
-  {
-    name:"Schuetzen Park",
-    geometry:{location:{lat: 40.77641839999999, lng: -74.03310199999999}},
-    types:["restaurant"]
+var initialPlaces = [{
+  name: "Schuetzen Park",
+  geometry: {
+    location: {
+      lat: 40.77641839999999,
+      lng: -74.03310199999999
+    }
   },
-  {
-    name:"The Skyline Hotel",
-    geometry:{location:{lat: 40.7643802, lng: -73.9924603}},
-    types:["hotel"]
+  types: ["restaurant"]
+}, {
+  name: "The Skyline Hotel",
+  geometry: {
+    location: {
+      lat: 40.7643802,
+      lng: -73.9924603
+    }
   },
-  {
-    name:"Mandarin Oriental, New York",
-    geometry:{location:{lat: 40.7690089, lng: -73.98301099999998}},
-    types:["restaurant"]
+  types: ["hotel"]
+}, {
+  name: "Mandarin Oriental, New York",
+  geometry: {
+    location: {
+      lat: 40.7690089,
+      lng: -73.98301099999998
+    }
   },
-  {
-    name:"The Empire Hotel",
-    geometry:{location:{lat: 40.7714959, lng: -73.9826673}},
-    types:["hotel"]
+  types: ["restaurant"]
+}, {
+  name: "The Empire Hotel",
+  geometry: {
+    location: {
+      lat: 40.7714959,
+      lng: -73.9826673
+    }
   },
-  {
-    name:"Trump International Hotel & Tower New York",
-    geometry:{location:{lat: 40.7690287, lng: -73.98160899999999}},
-    types:["hotel","point_of_interest"]
-  }
-];
+  types: ["hotel"]
+}, {
+  name: "Trump International Hotel & Tower New York",
+  geometry: {
+    location: {
+      lat: 40.7690287,
+      lng: -73.98160899999999
+    }
+  },
+  types: ["hotel", "point_of_interest"]
+}];
 var mapview = new MapView();
 var vm = new ViewModel();
 ko.applyBindings(vm);
