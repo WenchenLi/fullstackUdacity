@@ -7,6 +7,10 @@ install dependencies :
 
 ### configuration
 
+#### sudo commands prompt for user password.
+
+#### Remote login of the root user has been disabled.
+
 #### protocols and ports
 * SSH:2200
 
