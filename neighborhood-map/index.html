@@ -12,32 +12,32 @@
     <script src="js/libs/bootstrap.min.js"></script>
   </head>
   <body>
-    <input id="pac-input-neighborhood" class="controls col-md-6" type="text" placeholder="type a neighborhood">
+    <input id="pac-input-neighborhood" class="controls col-xs-6" type="text" placeholder="type a neighborhood">
     <!--http://stackoverflow.com/questions/12892066/knockoutjs-click-event-invoked-on-every-option-in-select-->
     <!-- <select data-bind="options: availableTypes, optionsText:$data, value:selectedType, event: {change: applyFilter}">
     </select> -->
-    <input id="pac-input-text-filter-text" data-bind="textInput: filterText" class="controls col-md-3" type="text" placeholder="filter by text match">
-    <input id="pac-input-text-filter-category" data-bind="textInput: filterCategoryText" class="controls col-md-3" type="text" placeholder="filter by category">
+    <input id="pac-input-text-filter-text" data-bind="textInput: filterText" class="controls col-xs-3" type="text" placeholder="filter by text match">
+    <input id="pac-input-text-filter-category" data-bind="textInput: filterCategoryText" class="controls col-xs-3" type="text" placeholder="filter by category">
 
     <div class="container">
       <div class="row">
       </div>
       <div class="row">
-        <div id="map-outer" class="col-md-12">
-          <!-- <div id="restultList" class="col-md-2 scroll">
+        <div id="map-outer" class="col-xs-12">
+          <!-- <div id="restultList" class="col-xs-2 scroll">
             <h4>All Places</h4>
             <ul id="place-list" class="placeList" data-bind="foreach: placeList">
               <li class="listItem" data-bind="text: name, click: $parent.changePlace"></li>
             </ul>
           </div> -->
-          <div id="filterByCategoryList" class="col-md-2 scroll">
+          <div id="filterByCategoryList" class="col-xs-2 scroll">
             <h4>Filtered Places</h4>
             <ul id="filtered-place-list" class="filterByCategoryList" data-bind="foreach: filteredList">
               <li class="listItem" data-bind="text: name, click: $parent.changePlace"></li>
             </ul>
           </div>
-          <div id="map-container" class="col-md-8"></div>
-          <div id="availableTypes" class="col-md-2 scroll">
+          <div id="map-container" class="col-xs-8"></div>
+          <div id="availableTypes" class="col-xs-2 scroll">
             <h5>available categories</h5>
             <ul id="category-list" class="categoryList" data-bind="foreach: availableTypes">
               <li class="categoryListItem" data-bind="text: $data"></li>
@@ -46,10 +46,10 @@
         </div><!-- /map-outer -->
       </div> <!-- /row-->
       <div class="row">
-        <p class="col-md-6">
+        <p class="col-xs-6">
           <strong data-bind="text:hereNow"></strong>
         </p>
-        <p class="col-md-6">
+        <p class="col-xs-6">
           <strong data-bind="text:alert"></strong>
         </p>
       </div>

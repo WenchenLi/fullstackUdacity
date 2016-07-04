@@ -1,5 +1,5 @@
 //NOW just assigning MVC to different function pieces
-
+'use strict';
 //MapView
 
 /**
@@ -21,27 +21,27 @@ var MapView = function ()  {
 MapView.prototype.initMapWithCurrentLocation  =  function(){
   var self = this;
 
-  this.map = new google.maps.Map(document.getElementById('map-container'), {
+  self.map = new google.maps.Map(document.getElementById('map-container'), {
     center: {lat: -33.867, lng: 151.195},
     scrollwheel: true,
     zoom:  15
   });
-  this.infoWindow = new google.maps.InfoWindow({map: this.map});
+  self.infoWindow = new google.maps.InfoWindow({map: self.map});
 
   // add search area
   var input = document.getElementById('pac-input-neighborhood');
   var searchBox = new google.maps.places.SearchBox(input);
   // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);//when want a compact view in the map
-  this.map.addListener('center_changed', function() {
+  self.map.addListener('center_changed', function() {
     console.log("center changed");
     // vm.initNewPlacesOnMap();
   });
-  this.map.addListener('zoom_changed', function() {
+  self.map.addListener('zoom_changed', function() {
     console.log("zoom changed");
     // vm.initNewPlacesOnMap();
   });
   // Bias the SearchBox results towards current map's viewport.
-  this.map.addListener('bounds_changed', function() {
+  self.map.addListener('bounds_changed', function() {
     console.log("bounds changed");
     searchBox.setBounds(self.map.getBounds());
     self.pos = {
@@ -51,7 +51,7 @@ MapView.prototype.initMapWithCurrentLocation  =  function(){
     vm.initNewPlacesOnMap();
   });
 
-  this.map.addListener('tilesloaded', function() {
+  self.map.addListener('tilesloaded', function() {
     console.log("tiles loaded");
     vm.initNewPlacesOnMap();
   });
@@ -299,7 +299,7 @@ var ViewModel = function () {
 
     this.alert = ko.observable("");
 
-    this.availableTypes = ko.observableArray([]);
+    this.availableTypes = ko.observableArray();
 
     this.selectedType = ko.observable(this.availableTypes[0]);
 
@@ -340,11 +340,11 @@ var ViewModel = function () {
         var targetList = [];
 
         if (filterText && filterCategoryText) {
-            alert("Sorry, we only support filter by either text match or category, not filter by both");
-            self.filterText("");
-            self.filterCategoryText("");
-            mapview.setMapOnAll(mapview.map);
-            return self.placeList();
+          alert("Sorry, we only support filter by either text match or category, not filter by both");
+          self.filterText("");
+          self.filterCategoryText("");
+          mapview.setMapOnAll(mapview.map);
+          return self.placeList();
         }
 
         //category
