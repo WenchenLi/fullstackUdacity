@@ -27,7 +27,7 @@ APPLICATION_NAME = "Item Catalog Application"
 
 
 # Connect to Database and create database session
-engine = create_engine('sqlite:///catalogdb')
+engine = create_engine('postgresql://catalog:iloveudacity@localhost/catalogdb')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
