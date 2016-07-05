@@ -1,7 +1,6 @@
 //NOW just assigning MVC to different function pieces
 'use strict';
 //MapView
-
 /**
  * @description Represents a mapview
  * @constructor
