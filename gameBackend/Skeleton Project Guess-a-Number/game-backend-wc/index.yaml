@@ -10,33 +10,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-- kind: Comment
+- kind: Game
   properties:
-  - name: post_id
-  - name: created
-    direction: desc
-
-- kind: Comment
-  properties:
-  - name: post_id=
-  - name: created
-    direction: desc
-
-- kind: Comment
-  ancestor: yes
-  properties:
-  - name: post_id
-  - name: created
-    direction: desc
-
-- kind: Post
-  ancestor: yes
-  properties:
-  - name: created
-    direction: desc
-
-- kind: Post
-  ancestor: yes
-  properties:
-  - name: date
-    direction: desc
+  - name: game_over
+  - name: user
