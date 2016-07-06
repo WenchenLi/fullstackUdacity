@@ -2,21 +2,75 @@ application: game-backend-wc
 version: 1
 runtime: python27
 api_version: 1
-threadsafe: yes
+threadsafe: true
 
-handlers:
+# handlers:
+
+# - url: /static
+#   static_dir: static
+# - url: /
+#   static_files: static/index.html
+#   upload: static/index\.html
+#   secure: always
+
+# - url: /favicon\.ico
+#   static_files: favicon.ico
+#   upload: favicon\.ico
+#
+# - url: /_ah/spi/.*
+#   script: api.api
+#
+# - url: /tasks/cache_average_attempts
+#   script: main.app
+#
+# - url: /crons/send_reminder
+#   script: main.app
+#
+# libraries:
+# - name: webapp2
+#   version: "2.5.2"
+#
+# - name: endpoints
+#   version: latest
+#
+# - name: webob
+#   version: "1.1.1"
+
+handlers:       # static then dynamic
+
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
 
-- url: /_ah/spi/.*
-  script: api.api
+- url: /js
+  static_dir: static/js
+
+- url: /img
+  static_dir: static/img
+
+- url: /css
+  static_dir: static/bootstrap/css
+
+- url: /fonts
+  static_dir: static/fonts
+
+- url: /partials
+  static_dir: static/partials
+
+- url: /
+  static_files: templates/index.html
+  upload: templates/index\.html
+  secure: always
 
 - url: /tasks/cache_average_attempts
   script: main.app
 
 - url: /crons/send_reminder
   script: main.app
+
+- url: /_ah/spi/.*
+  script: api.api
+  secure: always
 
 libraries:
 - name: webapp2
