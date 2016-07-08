@@ -82,6 +82,109 @@ class GuessANumberApi(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Return all of a User's active games. hint You may want to modify the
+         User and Game models to simplify this type of query. Hint: it might
+         make sense for each game to be a descendant of a User."""
+        # game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # if game:
+        #     return game.to_form('Time to make a move!')
+        # else:
+        #     raise endpoints.NotFoundException('Game not found!')
+        raise NotImplementedError
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='cancel_game',
+                      http_method='GET')
+    def cancel_game(self, request):
+        """This endpoint allows users to cancel a game in progress.
+        You could implement this by deleting the Game model itself,
+        or add a Boolean field such as 'cancelled' to the model.
+        Ensure that Users are not permitted to remove completed games."""
+        # game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # if game:
+        #     return game.to_form('Time to make a move!')
+        # else:
+        #     raise endpoints.NotFoundException('Game not found!')
+        raise NotImplementedError
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Remember how you defined a score in Task 2? Now we will use that to generate a list of high scores in descending order, a leader-board!
+
+        Accept an optional parameter number_of_results that limits the number of results returned.
+
+        Note: If you choose to implement a 2-player game this endpoint is not required."""
+        # game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # if game:
+        #     return game.to_form('Time to make a move!')
+        # else:
+        #     raise endpoints.NotFoundException('Game not found!')
+        raise NotImplementedError
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """First, come up with a metric for ranking players.
+            For "Guess a Number" this could be by winning percentage with
+            ties broken by the average number of guesses.
+
+           Then create an endpoint called get_user_rankings that returns
+           all players ranked by performance. The results should include
+           each Player's name and the 'performance' indicator
+           (eg. win/loss ratio).
+            """
+        # game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # if game:
+        #     return game.to_form('Time to make a move!')
+        # else:
+        #     raise endpoints.NotFoundException('Game not found!')
+        raise NotImplementedError
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """
+        Your API Users may want to be able to see a 'history' of moves for each game.
+
+        For example, Chess uses a format called PGN) which allows any game to
+        be replayed and watched move by move.
+
+        Add the capability for a Game's history to be presented in a similar way.
+        For example: If a User made played 'Guess a Number' with the moves:
+        (5, 8, 7), and received messages such as:
+        ('Too low!', 'Too high!', 'You win!'), an endpoint exposing the
+        game_history might produce something like:
+        [('Guess': 5, result: 'Too low'), ('Guess': 8, result: 'Too high'), ('Guess': 7, result: 'Win. Game over')].
+
+        Adding this functionality will require some additional properties
+        in the 'Game' model along with a Form, and endpoint to
+        present the data to the User.
+            """
+        # game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # if game:
+        #     return game.to_form('Time to make a move!')
+        # else:
+        #     raise endpoints.NotFoundException('Game not found!')
+        raise NotImplementedError
+
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',

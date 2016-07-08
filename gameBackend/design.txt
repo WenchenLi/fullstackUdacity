@@ -1,4 +1,15 @@
-my idea is implement an ai learn from the user while user playing against ai,
+I'll implement concentration.
+my idea is each game board is represented by a x by y matrix that the user can
+specify.
+for the content: each entry in the matrix is a combination of english chars and
+numbers with maximum length of given value z
+
+The objective of the user is to flip all the entry in the matrix with minimum
+number of attempts( more punishment can be implemented later like if flip but get
+error more times at the same entry, gets more punishment)
+
+my extra idea for the extra is implement an ai try to build a memory mechanism
+by itself.
 
 game:
 cron tasks:
