@@ -2,7 +2,7 @@
 entities used by the Game. Because these classes are also regular Python
 classes they can include methods (such as 'to_form' and 'new_game')."""
 
-import random
+import random, string
 from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
@@ -16,19 +16,37 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    target = ndb.IntegerProperty(required=True)
+    target = ndb.StringProperty(repeated=True)#this need to change
+    # array_length = ndb.IntegerProperty(required=True)#this need to change
     attempts_allowed = ndb.IntegerProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
 
+
     @classmethod
     def new_game(cls, user, min, max, attempts):
         """Creates and returns a new game"""
+
+        def content_generator(pair_count):
+            """
+            generate target repeated string property aka,
+            the string array for user to play with
+            """
+            def randomword(length):
+                return ''.join(random.choice(string.lowercase) for i in range(length))
+
+            res = []
+            for i in xrange(pair_count):
+                res.append(randomword(random.randint(0, 10)))#be a variable
+            res += res
+            random.shuffle(res)
+            return res
+
         if max < min:
             raise ValueError('Maximum must be greater than minimum')
         game = Game(user=user,
-                    target=random.choice(range(1, max + 1)),
+                    target=content_generator(random.choice(range(1, max + 1))),
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
                     game_over=False)
@@ -87,7 +105,7 @@ class NewGameForm(messages.Message):
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-    guess = messages.IntegerField(1, required=True)
+    guess = messages.IntegerField(1, repeated=True)#TODO todo required might not be used
 
 
 class ScoreForm(messages.Message):

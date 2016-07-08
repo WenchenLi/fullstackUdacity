@@ -12,7 +12,7 @@ my extra idea for the extra is implement an ai try to build a memory mechanism
 by itself.
 
 game:
-cron tasks:
+cron tasks: notify user only their game hasnt finished
 task queue: push (app engine works on the url specified jobs)
             pull ( external workers like other api url works on the job get result within a lease time)
 
