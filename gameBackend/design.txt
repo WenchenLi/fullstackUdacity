@@ -1,0 +1,8 @@
+my idea is implement an ai learn from the user while user playing against ai,
+
+game:
+cron tasks:
+task queue: push (app engine works on the url specified jobs)
+            pull ( external workers like other api url works on the job get result within a lease time)
+
+memcache: (ndb automatically work this or I can specify what need to be cached)
