@@ -98,10 +98,6 @@ class GuessANumberApi(remote.Service):
 
         if game.current_state[request.guess[0]] or game.current_state[request.guess[1]]:
             return game.to_form("Aren't you already got part of the result?")
-        game.attempts_remaining -= 1
-        if game.current_state == game.target:
-            game.end_game(True)
-            return game.to_form('You win!')
 
         if game.target[request.guess[0]] == game.target[request.guess[1]]:
             msg = 'You got one pair!'
@@ -109,6 +105,11 @@ class GuessANumberApi(remote.Service):
             game.current_state[request.guess[1]] = game.target[request.guess[1]]
         else:
             msg = 'sorry, it\'s not a match'
+
+        game.attempts_remaining -= 1
+        if game.current_state == game.target:
+            game.end_game(True)
+            return game.to_form('You win!')
 
         if game.attempts_remaining < 1:
             game.end_game(False)
