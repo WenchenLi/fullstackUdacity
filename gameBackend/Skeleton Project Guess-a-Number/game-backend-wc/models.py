@@ -16,8 +16,8 @@ class User(ndb.Model):
 
 class Game(ndb.Model):
     """Game object"""
-    target = ndb.StringProperty(repeated=True)#this need to change
-    # array_length = ndb.IntegerProperty(required=True)#this need to change
+    target = ndb.StringProperty(repeated=True)
+    current_state = ndb.StringProperty(repeated=True)#current correct guess in the same format of target
     attempts_allowed = ndb.IntegerProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
     game_over = ndb.BooleanProperty(required=True, default=False)
@@ -38,15 +38,17 @@ class Game(ndb.Model):
 
             res = []
             for i in xrange(pair_count):
-                res.append(randomword(random.randint(0, 10)))#be a variable
+                res.append(randomword(random.randint(1, 10)))#be a variable
             res += res
             random.shuffle(res)
             return res
 
         if max < min:
             raise ValueError('Maximum must be greater than minimum')
+        pair_count = random.choice(range(2, max + 1))
         game = Game(user=user,
-                    target=content_generator(random.choice(range(1, max + 1))),
+                    target=content_generator(pair_count),
+                    current_state = ['']*(pair_count*2),
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
                     game_over=False)
@@ -61,6 +63,19 @@ class Game(ndb.Model):
         form.attempts_remaining = self.attempts_remaining
         form.game_over = self.game_over
         form.message = message
+        form.current_state = self.current_state
+        return form
+
+    def to_form_with_current_guessed_result(self, message, guessed_strings):
+        """Returns a GameForm representation of the Game"""
+        form = GameForm()
+        form.urlsafe_key = self.key.urlsafe()
+        form.user_name = self.user.get().name
+        form.attempts_remaining = self.attempts_remaining
+        form.game_over = self.game_over
+        form.message = message
+        form.current_state = self.current_state
+        form.guessed_strings = guessed_strings
         return form
 
     def end_game(self, won=False):
@@ -93,6 +108,8 @@ class GameForm(messages.Message):
     game_over = messages.BooleanField(3, required=True)
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
+    current_state = messages.StringField(6,repeated=True)
+    guessed_strings = messages.StringField(7,repeated=True)
 
 
 class NewGameForm(messages.Message):

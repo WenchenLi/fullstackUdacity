@@ -67,7 +67,7 @@ class GuessANumberApi(remote.Service):
         # This operation is not needed to complete the creation of a new game
         # so it is performed out of sequence.
         taskqueue.add(url='/tasks/cache_average_attempts')
-        return game.to_form('Good luck playing Guess a Number!')
+        return game.to_form('Good luck pairing all the random strings!!')
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -81,6 +81,84 @@ class GuessANumberApi(remote.Service):
             return game.to_form('Time to make a move!')
         else:
             raise endpoints.NotFoundException('Game not found!')
+
+    @endpoints.method(request_message=MAKE_MOVE_REQUEST,
+                      response_message=GameForm,
+                      path='game/{urlsafe_game_key}',
+                      name='make_move',
+                      http_method='PUT')
+    def make_move(self, request):
+        """Makes a move. Returns a game state with message"""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game.game_over:
+            return game.to_form('Game already over!')
+
+        if len(request.guess) != 2:
+            return game.to_form("Please give a pair you think match!")
+
+        if game.current_state[request.guess[0]] or game.current_state[request.guess[1]]:
+            return game.to_form("Aren't you already got part of the result?")
+        game.attempts_remaining -= 1
+        if game.current_state == game.target:
+            game.end_game(True)
+            return game.to_form('You win!')
+
+        if game.target[request.guess[0]] == game.target[request.guess[1]]:
+            msg = 'You got one pair!'
+            game.current_state[request.guess[0]] = game.target[request.guess[0]]
+            game.current_state[request.guess[1]] = game.target[request.guess[1]]
+        else:
+            msg = 'sorry, it\'s not a match'
+
+        if game.attempts_remaining < 1:
+            game.end_game(False)
+            return game.to_form(msg + ' Game over!')
+        else:
+            game.put()
+            return game.to_form_with_current_guessed_result(msg,
+                [game.target[request.guess[0]], game.target[request.guess[1]]])
+
+    @endpoints.method(response_message=ScoreForms,
+                      path='scores',
+                      name='get_scores',
+                      http_method='GET')
+    def get_scores(self, request):
+        """Return all scores"""
+        return ScoreForms(items=[score.to_form() for score in Score.query()])
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=ScoreForms,
+                      path='scores/user/{user_name}',
+                      name='get_user_scores',
+                      http_method='GET')
+    def get_user_scores(self, request):
+        """Returns all of an individual User's scores"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                    'A User with that name does not exist!')
+        scores = Score.query(Score.user == user.key)
+        return ScoreForms(items=[score.to_form() for score in scores])
+
+    @endpoints.method(response_message=StringMessage,
+                      path='games/average_attempts',
+                      name='get_average_attempts_remaining',
+                      http_method='GET')
+    def get_average_attempts(self, request):
+        """Get the cached average moves remaining"""
+        return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
+
+    @staticmethod
+    def _cache_average_attempts():
+        """Populates memcache with the average moves remaining of Games"""
+        games = Game.query(Game.game_over == False).fetch()
+        if games:
+            count = len(games)
+            total_attempts_remaining = sum([game.attempts_remaining
+                                        for game in games])
+            average = float(total_attempts_remaining)/count
+            memcache.set(MEMCACHE_MOVES_REMAINING,
+                         'The average moves remaining is {:.2f}'.format(average))
 
     # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
     #                   response_message=GameForm,
@@ -184,76 +262,5 @@ class GuessANumberApi(remote.Service):
     #     # else:
     #     #     raise endpoints.NotFoundException('Game not found!')
     #     raise NotImplementedError
-
-    @endpoints.method(request_message=MAKE_MOVE_REQUEST,
-                      response_message=GameForm,
-                      path='game/{urlsafe_game_key}',
-                      name='make_move',
-                      http_method='PUT')
-    def make_move(self, request):
-        """Makes a move. Returns a game state with message"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game.game_over:
-            return game.to_form('Game already over!')
-
-        game.attempts_remaining -= 1
-        if request.guess == game.target:
-            game.end_game(True)
-            return game.to_form('You win!')
-
-        if request.guess < game.target:
-            msg = 'Too low!'
-        else:
-            msg = 'Too high!'
-
-        if game.attempts_remaining < 1:
-            game.end_game(False)
-            return game.to_form(msg + ' Game over!')
-        else:
-            game.put()
-            return game.to_form(msg)
-
-    @endpoints.method(response_message=ScoreForms,
-                      path='scores',
-                      name='get_scores',
-                      http_method='GET')
-    def get_scores(self, request):
-        """Return all scores"""
-        return ScoreForms(items=[score.to_form() for score in Score.query()])
-
-    @endpoints.method(request_message=USER_REQUEST,
-                      response_message=ScoreForms,
-                      path='scores/user/{user_name}',
-                      name='get_user_scores',
-                      http_method='GET')
-    def get_user_scores(self, request):
-        """Returns all of an individual User's scores"""
-        user = User.query(User.name == request.user_name).get()
-        if not user:
-            raise endpoints.NotFoundException(
-                    'A User with that name does not exist!')
-        scores = Score.query(Score.user == user.key)
-        return ScoreForms(items=[score.to_form() for score in scores])
-
-    @endpoints.method(response_message=StringMessage,
-                      path='games/average_attempts',
-                      name='get_average_attempts_remaining',
-                      http_method='GET')
-    def get_average_attempts(self, request):
-        """Get the cached average moves remaining"""
-        return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
-
-    @staticmethod
-    def _cache_average_attempts():
-        """Populates memcache with the average moves remaining of Games"""
-        games = Game.query(Game.game_over == False).fetch()
-        if games:
-            count = len(games)
-            total_attempts_remaining = sum([game.attempts_remaining
-                                        for game in games])
-            average = float(total_attempts_remaining)/count
-            memcache.set(MEMCACHE_MOVES_REMAINING,
-                         'The average moves remaining is {:.2f}'.format(average))
-
 
 api = endpoints.api_server([GuessANumberApi])
