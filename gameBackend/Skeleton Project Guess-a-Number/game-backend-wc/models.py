@@ -22,7 +22,8 @@ class Game(ndb.Model):
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
-
+    current_message = ndb.StringProperty()
+    current_guessed_strings = ndb.StringProperty(repeated=True)
 
     @classmethod
     def new_game(cls, user, min, max, attempts):
@@ -51,7 +52,10 @@ class Game(ndb.Model):
                     current_state = ['']*(pair_count*2),
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
-                    game_over=False)
+                    game_over=False,
+                    parent=user,
+                    current_message="",
+                    current_guessed_strings=["",""])
         game.put()
         return game
 
@@ -64,6 +68,8 @@ class Game(ndb.Model):
         form.game_over = self.game_over
         form.message = message
         form.current_state = self.current_state
+
+        self.current_message = message
         return form
 
     def to_form_with_current_guessed_result(self, message, guessed_strings):
@@ -76,6 +82,25 @@ class Game(ndb.Model):
         form.message = message
         form.current_state = self.current_state
         form.guessed_strings = guessed_strings
+
+        self.current_guessed_strings = guessed_strings
+        self.current_message = message
+        return form
+
+    def to_form_raw(self):
+        """
+        Returns a GameForm representation of the Game including current message
+        and current guessed strings
+        """
+        form = GameForm()
+        form.urlsafe_key = self.key.urlsafe()
+        form.attempts_remaining = self.attempts_remaining
+        form.game_over = self.game_over
+        form.message = self.current_message
+        form.user_name = self.user.get().name
+        form.current_state = self.current_state
+        form.guessed_strings = self.current_guessed_strings
+
         return form
 
     def end_game(self, won=False):
@@ -111,6 +136,8 @@ class GameForm(messages.Message):
     current_state = messages.StringField(6,repeated=True)
     guessed_strings = messages.StringField(7,repeated=True)
 
+class GameForms(messages.Message):
+    items = messages.MessageField(GameForm, 1, repeated=True)
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
@@ -118,7 +145,6 @@ class NewGameForm(messages.Message):
     min = messages.IntegerField(2, default=1)
     max = messages.IntegerField(3, default=10)
     attempts = messages.IntegerField(4, default=5)
-
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""

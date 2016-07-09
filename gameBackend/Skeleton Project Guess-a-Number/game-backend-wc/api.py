@@ -12,13 +12,15 @@ from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms
+from models import StringMessage, NewGameForm, GameForm, GameForms,\
+    MakeMoveForm, ScoreForms
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
+
 GET_GAME_REQUEST = endpoints.ResourceContainer(
         urlsafe_game_key=messages.StringField(1),)
+
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1),)
@@ -27,7 +29,7 @@ USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
 
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
-@endpoints.api(name='guess_a_number', version='v1')
+@endpoints.api(name='concentration', version='v1')
 class GuessANumberApi(remote.Service):
     """Game API"""
     @endpoints.method(request_message=USER_REQUEST,
@@ -149,33 +151,22 @@ class GuessANumberApi(remote.Service):
         """Get the cached average moves remaining"""
         return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
 
-    @staticmethod
-    def _cache_average_attempts():
-        """Populates memcache with the average moves remaining of Games"""
-        games = Game.query(Game.game_over == False).fetch()
-        if games:
-            count = len(games)
-            total_attempts_remaining = sum([game.attempts_remaining
-                                        for game in games])
-            average = float(total_attempts_remaining)/count
-            memcache.set(MEMCACHE_MOVES_REMAINING,
-                         'The average moves remaining is {:.2f}'.format(average))
+    @endpoints.method(request_message=USER_REQUEST,#need to change
+                      response_message=GameForms,
+                      path='path=scores/user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Return all of a User's active games. hint You may want to modify the
+         User and Game models to simplify this type of query. Hint: it might
+         make sense for each game to be a descendant of a User."""
+        user = User.query(User.name == request.user_name).get()
+        games = Game.query(Game.game_over == False)
 
-    # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
-    #                   response_message=GameForm,
-    #                   path='game/{urlsafe_user_game_key}',
-    #                   name='get_user_games',
-    #                   http_method='GET')
-    # def get_user_games(self, request):
-    #     """Return all of a User's active games. hint You may want to modify the
-    #      User and Game models to simplify this type of query. Hint: it might
-    #      make sense for each game to be a descendant of a User."""
-    #     # game = get_by_urlsafe(request.urlsafe_game_key, Game)
-    #     # if game:
-    #     #     return game.to_form('Time to make a move!')
-    #     # else:
-    #     #     raise endpoints.NotFoundException('Game not found!')
-    #     raise NotImplementedError
+        items=[game.to_form_raw() for game in games]
+        print items
+        return GameForms(items=[game.to_form_raw() for game in games])
+
     #
     # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
     #                   response_message=GameForm,
@@ -263,5 +254,15 @@ class GuessANumberApi(remote.Service):
     #     # else:
     #     #     raise endpoints.NotFoundException('Game not found!')
     #     raise NotImplementedError
-
+    @staticmethod
+    def _cache_average_attempts():
+        """Populates memcache with the average moves remaining of Games"""
+        games = Game.query(Game.game_over == False).fetch()
+        if games:
+            count = len(games)
+            total_attempts_remaining = sum([game.attempts_remaining
+                                        for game in games])
+            average = float(total_attempts_remaining)/count
+            memcache.set(MEMCACHE_MOVES_REMAINING,
+                         'The average moves remaining is {:.2f}'.format(average))
 api = endpoints.api_server([GuessANumberApi])
