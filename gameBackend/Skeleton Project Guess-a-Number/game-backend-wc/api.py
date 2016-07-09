@@ -10,11 +10,13 @@ import endpoints
 from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
+from collections import Counter
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms,\
-    MakeMoveForm, ScoreForms
+    MakeMoveForm, ScoreForms, UserScoreForm, UserScoreForms
 from utils import get_by_urlsafe
+
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 
@@ -30,6 +32,9 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1),)
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
+
+LEADERBOARD_REQUEST = endpoints.ResourceContainer(
+        top_k=messages.IntegerField(1,default=10),)
 
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
@@ -133,6 +138,28 @@ class GuessANumberApi(remote.Service):
         """Return all scores"""
         return ScoreForms(items=[score.to_form() for score in Score.query()])
 
+    @endpoints.method(request_message=LEADERBOARD_REQUEST,#need to change
+                      response_message=UserScoreForms,
+                      path='scores/leaderboard',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """
+        Generate a leader-board (high scores in descending order).
+        Accept an optional parameter number_of_results that limits
+        the number of results returned.
+        """
+        k = request.top_k
+        items=[score.to_form() for score in Score.query(Score.won==True)] #it's a simple score, won count 1
+        leaderboard_dict = {item.user_name:0 for item in items }
+        for item in items:
+            leaderboard_dict[item.user_name] += 1
+        filtered_ct = Counter(leaderboard_dict)
+
+        return UserScoreForms(items=[UserScoreForm(
+                user_name=item[0], score=item[1])
+                for item in  filtered_ct.most_common(int(k))])
+
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
                       path='scores/user/{user_name}',
@@ -196,23 +223,8 @@ class GuessANumberApi(remote.Service):
                 msg.message = "Game canceled."
         return msg
 
-    # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
-    #                   response_message=GameForm,
-    #                   path='game/{urlsafe_game_key}',
-    #                   name='get_high_scores',
-    #                   http_method='GET')
-    # def get_high_scores(self, request):
-    #     """Remember how you defined a score in Task 2? Now we will use that to generate a list of high scores in descending order, a leader-board!
-    #
-    #     Accept an optional parameter number_of_results that limits the number of results returned.
-    #
-    #     Note: If you choose to implement a 2-player game this endpoint is not required."""
-    #     # game = get_by_urlsafe(request.urlsafe_game_key, Game)
-    #     # if game:
-    #     #     return game.to_form('Time to make a move!')
-    #     # else:
-    #     #     raise endpoints.NotFoundException('Game not found!')
-    #     raise NotImplementedError
+
+
     #
     # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
     #                   response_message=GameForm,
