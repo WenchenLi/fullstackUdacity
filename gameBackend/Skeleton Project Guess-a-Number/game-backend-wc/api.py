@@ -21,6 +21,10 @@ NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
         urlsafe_game_key=messages.StringField(1),)
 
+CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
+        urlsafe_game_key=messages.StringField(1),
+        user_name=messages.StringField(2))
+
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1),)
@@ -167,24 +171,31 @@ class GuessANumberApi(remote.Service):
         print items
         return GameForms(items=[game.to_form_raw() for game in games])
 
-    #
-    # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
-    #                   response_message=GameForm,
-    #                   path='game/{urlsafe_game_key}',
-    #                   name='cancel_game',
-    #                   http_method='GET')
-    # def cancel_game(self, request):
-    #     """This endpoint allows users to cancel a game in progress.
-    #     You could implement this by deleting the Game model itself,
-    #     or add a Boolean field such as 'cancelled' to the model.
-    #     Ensure that Users are not permitted to remove completed games."""
-    #     # game = get_by_urlsafe(request.urlsafe_game_key, Game)
-    #     # if game:
-    #     #     return game.to_form('Time to make a move!')
-    #     # else:
-    #     #     raise endpoints.NotFoundException('Game not found!')
-    #     raise NotImplementedError
-    #
+
+    @endpoints.method(request_message=CANCEL_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path='user/game/{urlsafe_game_key}',
+                      name='cancel_game',
+                      http_method='GET')
+    def cancel_game(self, request):
+        """This endpoint allows users to cancel a game in progress.
+        You could implement this by deleting the Game model itself,
+        or add a Boolean field such as 'cancelled' to the model.
+        Ensure that Users are not permitted to remove completed games."""
+        msg = StringMessage()
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        user = User.query(User.name == request.user_name).get()
+        print game.user,user.key
+        if game.user!= user.key:
+            msg.message = "You are not allowed to cancel other's game"
+        else:
+            if game.game_over:
+                msg.message = "Game was already over, you can't cancel it"
+            else:
+                game.key.delete()
+                msg.message = "Game canceled."
+        return msg
+
     # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
     #                   response_message=GameForm,
     #                   path='game/{urlsafe_game_key}',
@@ -254,6 +265,7 @@ class GuessANumberApi(remote.Service):
     #     # else:
     #     #     raise endpoints.NotFoundException('Game not found!')
     #     raise NotImplementedError
+
     @staticmethod
     def _cache_average_attempts():
         """Populates memcache with the average moves remaining of Games"""
