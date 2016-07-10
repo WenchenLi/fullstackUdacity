@@ -14,7 +14,7 @@ from collections import Counter
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms,\
-    MakeMoveForm, ScoreForms, UserScoreForm, UserScoreForms
+    MakeMoveForm, ScoreForms, UserScoreForm, UserScoreForms, UserRankForm
 from utils import get_by_urlsafe
 
 
@@ -30,7 +30,7 @@ CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1),)
-USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
+USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1,required=True),
                                            email=messages.StringField(2))
 
 LEADERBOARD_REQUEST = endpoints.ResourceContainer(
@@ -150,15 +150,42 @@ class GuessANumberApi(remote.Service):
         the number of results returned.
         """
         k = request.top_k
-        items=[score.to_form() for score in Score.query(Score.won==True)] #it's a simple score, won count 1
-        leaderboard_dict = {item.user_name:0 for item in items }
-        for item in items:
-            leaderboard_dict[item.user_name] += 1
-        filtered_ct = Counter(leaderboard_dict)
+        filtered_ct = memcache.get("leaderboard")
 
-        return UserScoreForms(items=[UserScoreForm(
-                user_name=item[0], score=item[1])
-                for item in  filtered_ct.most_common(int(k))])
+        if filtered_ct is not None:
+            data = UserScoreForms(items=[UserScoreForm(
+                    user_name=item[0], score=item[1])
+                    for item in filtered_ct.most_common(int(k))])
+        else:
+            filtered_ct, _ = self.calculateLeaderBoardAndRank()
+            data = UserScoreForms(items=[UserScoreForm(
+                    user_name=item[0], score=item[1])
+                    for item in filtered_ct.most_common(int(k))])
+        return data
+
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=UserRankForm,
+                      path='rank',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """First, come up with a metric for ranking players.
+            For "Guess a Number" this could be by winning percentage with
+            ties broken by the average number of guesses.
+
+           Then create an endpoint called get_user_rankings that returns
+           all players ranked by performance. The results should include
+           each Player's name and the 'performance' indicator
+           (eg. win/loss ratio).
+        """
+        user_rank = memcache.get(request.user_name)
+        if user_rank is not None:
+            data = UserRankForm(user_name=request.user_name, rank=user_rank)
+        else:
+            _, rank_dict = self.calculateLeaderBoardAndRank()
+            data = UserRankForm(user_name=request.user_name,
+                            rank=rank_dict[request.user_name])
+        return data
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=ScoreForms,
@@ -225,28 +252,7 @@ class GuessANumberApi(remote.Service):
 
 
 
-    #
-    # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
-    #                   response_message=GameForm,
-    #                   path='game/{urlsafe_game_key}',
-    #                   name='get_user_rankings',
-    #                   http_method='GET')
-    # def get_user_rankings(self, request):
-    #     """First, come up with a metric for ranking players.
-    #         For "Guess a Number" this could be by winning percentage with
-    #         ties broken by the average number of guesses.
-    #
-    #        Then create an endpoint called get_user_rankings that returns
-    #        all players ranked by performance. The results should include
-    #        each Player's name and the 'performance' indicator
-    #        (eg. win/loss ratio).
-    #         """
-    #     # game = get_by_urlsafe(request.urlsafe_game_key, Game)
-    #     # if game:
-    #     #     return game.to_form('Time to make a move!')
-    #     # else:
-    #     #     raise endpoints.NotFoundException('Game not found!')
-    #     raise NotImplementedError
+
     #
     # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
     #                   response_message=GameForm,
@@ -277,6 +283,28 @@ class GuessANumberApi(remote.Service):
     #     # else:
     #     #     raise endpoints.NotFoundException('Game not found!')
     #     raise NotImplementedError
+    @staticmethod
+    def calculateLeaderBoardAndRank():
+        """given score, calculate leaderboard and user rank and set them to memcache"""
+        #it's a simple score, won count 1
+        items = [score.to_form() for score in Score.query()]
+        rank_dict = {item.user_name:0 for item in items}
+        leaderboard_dict = {item.user_name:0 for item in items}
+        for item in items:
+            if item.won == True:
+                leaderboard_dict[item.user_name] += 1
+        filtered_ct = Counter(leaderboard_dict)
+        temp_rank = filtered_ct.most_common(len(filtered_ct))
+        for j, item in enumerate(temp_rank):
+            rank_dict[item[0]] = j+1
+
+        memcache.set_multi(
+            rank_dict,
+            time=1200
+        )
+        memcache.add(key="leaderboard", value=filtered_ct, time=1200)
+
+        return filtered_ct,rank_dict
 
     @staticmethod
     def _cache_average_attempts():

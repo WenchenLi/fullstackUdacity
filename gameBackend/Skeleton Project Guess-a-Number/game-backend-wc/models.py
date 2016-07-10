@@ -150,6 +150,10 @@ class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
     guess = messages.IntegerField(1, repeated=True)#TODO todo required might not be used
 
+class UserRankForm(messages.Message):
+    """UserScoreForm for outbound Score information"""
+    user_name = messages.StringField(1, required=True)
+    rank = messages.IntegerField(2, required=True)
 
 class UserScoreForm(messages.Message):
     """UserScoreForm for outbound Score information"""
