@@ -14,8 +14,11 @@ from collections import Counter
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms,\
-    MakeMoveForm, ScoreForms, UserScoreForm, UserScoreForms, UserRankForm
+    MakeMoveForm, ScoreForms, UserScoreForm, UserScoreForms, UserRankForm,\
+    GameHistoryForm
 from utils import get_by_urlsafe
+
+import json
 
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -107,7 +110,13 @@ class GuessANumberApi(remote.Service):
         if len(request.guess) != 2:
             return game.to_form("Please give a pair you think match!")
 
-        if game.current_state[request.guess[0]] or game.current_state[request.guess[1]]:
+        if request.guess[0] >= len(game.target) or\
+            request.guess[1] >= len(game.target):
+            return game.to_form("You enter an index that is"
+                                " not exist for this game")
+
+        if game.current_state[request.guess[0]] or\
+            game.current_state[request.guess[1]]:
             return game.to_form("Aren't you already got part of the result?")
 
         if game.target[request.guess[0]] == game.target[request.guess[1]]:
@@ -122,8 +131,17 @@ class GuessANumberApi(remote.Service):
             game.end_game(True)
             return game.to_form('You win!')
 
+        #keep game history
+        game.history.append(json.dumps({"guess":[game.target[request.guess[0]],
+                                      game.target[request.guess[1]]],
+                             "state":game.current_state,
+                             "message":msg,
+                             "attempts_remaining":game.attempts_remaining,
+                             "game_over":game.game_over}))
+
         if game.attempts_remaining < 1:
             game.end_game(False)
+            game.put()
             return game.to_form(msg + ' Game over!')
         else:
             game.put()
@@ -250,39 +268,21 @@ class GuessANumberApi(remote.Service):
                 msg.message = "Game canceled."
         return msg
 
+    @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
+                      response_message=GameHistoryForm,
+                      path='game/history/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """
+        retrive game history for each round
+        """
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return game.to_form_history()
+        else:
+            raise endpoints.NotFoundException('Game not found!')
 
-
-
-    #
-    # @endpoints.method(request_message=GET_GAME_REQUEST,#need to change
-    #                   response_message=GameForm,
-    #                   path='game/{urlsafe_game_key}',
-    #                   name='get_game_history',
-    #                   http_method='GET')
-    # def get_game_history(self, request):
-    #     """
-    #     Your API Users may want to be able to see a 'history' of moves for each game.
-    #
-    #     For example, Chess uses a format called PGN) which allows any game to
-    #     be replayed and watched move by move.
-    #
-    #     Add the capability for a Game's history to be presented in a similar way.
-    #     For example: If a User made played 'Guess a Number' with the moves:
-    #     (5, 8, 7), and received messages such as:
-    #     ('Too low!', 'Too high!', 'You win!'), an endpoint exposing the
-    #     game_history might produce something like:
-    #     [('Guess': 5, result: 'Too low'), ('Guess': 8, result: 'Too high'), ('Guess': 7, result: 'Win. Game over')].
-    #
-    #     Adding this functionality will require some additional properties
-    #     in the 'Game' model along with a Form, and endpoint to
-    #     present the data to the User.
-    #         """
-    #     # game = get_by_urlsafe(request.urlsafe_game_key, Game)
-    #     # if game:
-    #     #     return game.to_form('Time to make a move!')
-    #     # else:
-    #     #     raise endpoints.NotFoundException('Game not found!')
-    #     raise NotImplementedError
     @staticmethod
     def calculateLeaderBoardAndRank():
         """given score, calculate leaderboard and user rank and set them to memcache"""

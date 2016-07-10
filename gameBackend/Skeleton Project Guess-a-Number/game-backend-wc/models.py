@@ -6,7 +6,7 @@ import random, string
 from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
-
+import json
 
 class User(ndb.Model):
     """User profile"""
@@ -17,13 +17,16 @@ class User(ndb.Model):
 class Game(ndb.Model):
     """Game object"""
     target = ndb.StringProperty(repeated=True)
-    current_state = ndb.StringProperty(repeated=True)#current correct guess in the same format of target
     attempts_allowed = ndb.IntegerProperty(required=True)
     attempts_remaining = ndb.IntegerProperty(required=True, default=5)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+
+    #current correct guess in the same format of target
+    current_state = ndb.StringProperty(repeated=True)
     current_message = ndb.StringProperty()
     current_guessed_strings = ndb.StringProperty(repeated=True)
+    history = ndb.JsonProperty(repeated=True)
 
     @classmethod
     def new_game(cls, user, min, max, attempts):
@@ -103,6 +106,33 @@ class Game(ndb.Model):
 
         return form
 
+    def to_form_history(self):
+        """
+        Returns a GameHistoryForm representation of the Game
+        """
+
+        # guessed_strings = messages.StringField(1, repeated=True)
+        # current_state = messages.StringField(2, repeated=True)
+        # message = messages.StringField(3, required=True)
+        # attempts_remaining = messages.IntegerField(4, required=True)
+        # game_over = messages.BooleanField(5, required=True)
+        #
+        # game.history.append({"guess":[game.target[request.guess[0]],
+        #                               game.target[request.guess[1]]],
+        #                      "state":game.current_state,
+        #                      "message":msg,
+        #                      "attempts_remaining":game.attempts_remaining,
+        #                      "game_over":game.game_over})
+        states = [json.loads(state) for state in self.history]
+        print states
+        return GameHistoryForm(items=[
+                GameStateForm(guessed_strings=state["guess"],
+                            current_state=state["state"],
+                            message=state["message"],
+                            attempts_remaining=state["attempts_remaining"],
+                            game_over=state["game_over"]
+                            ) for state in states])
+
     def end_game(self, won=False):
         """Ends the game - if won is True, the player won. - if won is False,
         the player lost."""
@@ -125,6 +155,17 @@ class Score(ndb.Model):
         return ScoreForm(user_name=self.user.get().name, won=self.won,
                          date=str(self.date), guesses=self.guesses)
 
+class GameStateForm(messages.Message):
+    """GameHistoryForm for outbound game state information"""
+    guessed_strings = messages.StringField(1, repeated=True)
+    current_state = messages.StringField(2, repeated=True)
+    message = messages.StringField(3, required=True)
+    attempts_remaining = messages.IntegerField(4, required=True)
+    game_over = messages.BooleanField(5, required=True)
+
+
+class GameHistoryForm(messages.Message):
+    items = messages.MessageField(GameStateForm, 1, repeated=True)
 
 class GameForm(messages.Message):
     """GameForm for outbound game state information"""
