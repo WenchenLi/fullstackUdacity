@@ -26,7 +26,7 @@ class SendReminderEmail(webapp2.RequestHandler):
                 body += "{}/game/{}".format(app_url,game_key_url_safe) + "\n"
             # This will send test emails, the arguments to send_mail are:
             # from, to, subject, body
-            if user_game_dict[email]:#send email only have games active
+            if len(user_game_dict[email]) > 0 :#send email only have games active
                 mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
                                email,
                                subject,
