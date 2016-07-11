@@ -27,8 +27,8 @@ GET_GAME_REQUEST = endpoints.ResourceContainer(
         urlsafe_game_key=messages.StringField(1),)
 
 CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
-        urlsafe_game_key=messages.StringField(1),
-        user_name=messages.StringField(2))
+        urlsafe_game_key=messages.StringField(1,required=True),
+        user_name=messages.StringField(2,required=True))
 
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
@@ -248,9 +248,9 @@ class ConcentrationApi(remote.Service):
 
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=StringMessage,
-                      path='user/game/{urlsafe_game_key}',
+                      path='user/game/cancel',
                       name='cancel_game',
-                      http_method='GET')
+                      http_method='POST')
     def cancel_game(self, request):
         """
         allows users to cancel a game in progress.
