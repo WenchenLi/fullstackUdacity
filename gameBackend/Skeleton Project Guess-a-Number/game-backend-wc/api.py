@@ -241,7 +241,7 @@ class ConcentrationApi(remote.Service):
     def get_user_games(self, request):
         """Return all of a User's active games."""
         user = User.query(User.name == request.user_name).get()
-        games = Game.query(Game.game_over == False)
+        games = Game.query(Game.game_over == False, Game.user == user.key)
 
         items = [game.to_form_raw() for game in games]
         return GameForms(items=[game.to_form_raw() for game in games])
@@ -258,7 +258,6 @@ class ConcentrationApi(remote.Service):
         msg = StringMessage()
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         user = User.query(User.name == request.user_name).get()
-        print game.user,user.key
         if game.user!= user.key:
             msg.message = "You are not allowed to cancel other's game"
         else:
@@ -315,13 +314,13 @@ class ConcentrationApi(remote.Service):
         """
         #it's a simple score, won count 1
         users_with_email = User.query(User.email != None)
-        games = Game.query(Game.game_over == False)
         rest = {}
         for user_with_email in users_with_email:
             user = User.query(User.name == user_with_email.name).get()
+            games = Game.query(Game.game_over == False,  Game.user == user.key)
             rest[user.email] = []
             for game in games:
-                if game.user == user_with_email:
+                if game.user == user.key:
                     rest[user.email].append(game.key.urlsafe())
         return rest
 
