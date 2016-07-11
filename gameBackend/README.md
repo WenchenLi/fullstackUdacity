@@ -7,6 +7,9 @@
 1.  Run the app with the devserver using dev_appserver.py DIR, and ensure it's
  running by visiting the API Explorer - by default localhost:8080/_ah/api/explorer.
 1.  Application is deployed at [here](https://game-backend-wc.appspot.com)
+1. To test the api locally you need to use chrome mode:[path to chrome][flags][port].
+  So for ubuntu 14.04 it's
+  ``` /usr/bin/google-chrome-stable --user-data-dir=test --unsafely-treat-insecure-origin-as-secure=http://localhost:8080```
 
 
 ##Game Description:
