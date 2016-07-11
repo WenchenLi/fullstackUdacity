@@ -229,7 +229,7 @@ class ConcentrationApi(remote.Service):
 
     @endpoints.method(request_message=USER_REQUEST,#need to change
                       response_message=GameForms,
-                      path='path=scores/user/{user_name}',
+                      path='scores/user/{user_name}',
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):

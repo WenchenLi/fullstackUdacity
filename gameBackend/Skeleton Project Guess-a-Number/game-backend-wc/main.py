@@ -8,6 +8,7 @@ from google.appengine.api import mail, app_identity
 from api import ConcentrationApi
 from models import User
 
+app_url ="https://game-backend-wc.appspot.com"
 
 class SendReminderEmail(webapp2.RequestHandler):
     """
@@ -22,14 +23,14 @@ class SendReminderEmail(webapp2.RequestHandler):
             subject = 'You have active games!'
             body = 'Hello, you have the following games still active.'
             for game_key_url_safe  in user_game_dict[email]:
-                body += game_key_url_safe + "\n"
-
+                body += "{}/game/{}".format(app_url,game_key_url_safe) + "\n"
             # This will send test emails, the arguments to send_mail are:
             # from, to, subject, body
-            mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
-                           email,
-                           subject,
-                           body)
+            if user_game_dict[email]:#send email only have games active
+                mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
+                               email,
+                               subject,
+                               body)
 
 class UpdateAverageMovesRemaining(webapp2.RequestHandler):
     def post(self):
