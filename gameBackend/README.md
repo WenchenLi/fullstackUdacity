@@ -22,6 +22,9 @@ Each game can be retrieved or played by using the path parameter
 User can get the leaderboard by with api 'get_high_scores' , and get oneself's
 ranking with 'get_user_rankings'
 
+Score are kept as: each won game count as 1 point towards the leaderboard, rank is
+calculated based on the score.
+
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.
  - app.yaml: App configuration.
@@ -112,8 +115,8 @@ ranking with 'get_user_rankings'
    - Description: Return all of a User's active games.
 
 - **cancel_game**
-  - Path: 'user/game/{urlsafe_game_key}'
-  - Method: GET
+  - Path: 'user/game/cancel'
+  - Method: DELETE
   - Parameters: user_name,urlsafe_game_key
   - Returns: StringMessage
   - Description: allows users to cancel a game in progress.

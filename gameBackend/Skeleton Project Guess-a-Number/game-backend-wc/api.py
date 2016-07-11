@@ -4,8 +4,6 @@ This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
 primarily with communication to/from the API's users."""
 
-
-import logging
 import endpoints
 from protorpc import remote, messages
 from google.appengine.api import memcache
@@ -98,7 +96,8 @@ class ConcentrationApi(remote.Service):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form('Time to make a move!')
+            raise endpoints.NotFoundException(
+                    'This game is no longer exsited!')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -110,6 +109,9 @@ class ConcentrationApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+
+        if not game:
+            endpoints.raiseE
         if game.game_over:
             return game.to_form('Game already over!')
 
@@ -250,15 +252,23 @@ class ConcentrationApi(remote.Service):
                       response_message=StringMessage,
                       path='user/game/cancel',
                       name='cancel_game',
-                      http_method='POST')
+                      http_method='DELETE')
     def cancel_game(self, request):
         """
         allows users to cancel a game in progress.
         """
         msg = StringMessage()
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            msg.message = "The game is already canceled"
+            return msg
+        if game.game_over:
+            msg.message = "You can't cancel a finished game"
+            return msg
+
         user = User.query(User.name == request.user_name).get()
-        if game.user!= user.key:
+
+        if not user or game.user!= user.key:
             msg.message = "You are not allowed to cancel other's game"
         else:
             if game.game_over:
