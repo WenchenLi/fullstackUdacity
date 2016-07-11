@@ -111,18 +111,6 @@ class Game(ndb.Model):
         Returns a GameHistoryForm representation of the Game
         """
 
-        # guessed_strings = messages.StringField(1, repeated=True)
-        # current_state = messages.StringField(2, repeated=True)
-        # message = messages.StringField(3, required=True)
-        # attempts_remaining = messages.IntegerField(4, required=True)
-        # game_over = messages.BooleanField(5, required=True)
-        #
-        # game.history.append({"guess":[game.target[request.guess[0]],
-        #                               game.target[request.guess[1]]],
-        #                      "state":game.current_state,
-        #                      "message":msg,
-        #                      "attempts_remaining":game.attempts_remaining,
-        #                      "game_over":game.game_over})
         states = [json.loads(state) for state in self.history]
         print states
         return GameHistoryForm(items=[

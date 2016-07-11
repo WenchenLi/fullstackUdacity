@@ -42,7 +42,7 @@ LEADERBOARD_REQUEST = endpoints.ResourceContainer(
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
 @endpoints.api(name='concentration', version='v1')
-class GuessANumberApi(remote.Service):
+class ConcentrationApi(remote.Service):
     """Game API"""
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
@@ -239,10 +239,8 @@ class GuessANumberApi(remote.Service):
         user = User.query(User.name == request.user_name).get()
         games = Game.query(Game.game_over == False)
 
-        items=[game.to_form_raw() for game in games]
-        print items
+        items = [game.to_form_raw() for game in games]
         return GameForms(items=[game.to_form_raw() for game in games])
-
 
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=StringMessage,
@@ -307,6 +305,24 @@ class GuessANumberApi(remote.Service):
         return filtered_ct,rank_dict
 
     @staticmethod
+    def gameReminderhelper():
+        """
+        for each user, return a dictionalry with email as key,corresponding
+        game keys in a list as value
+        """
+        #it's a simple score, won count 1
+        users_with_email = User.query(User.email != None)
+        games = Game.query(Game.game_over == False)
+        rest = {}
+        for user_with_email in users_with_email:
+            user = User.query(User.name == user_with_email.name).get()
+            rest[user.email] = []
+            for game in games:
+                if game.user == user_with_email:
+                    rest[user.email].append(game.key.urlsafe())
+        return rest
+
+    @staticmethod
     def _cache_average_attempts():
         """Populates memcache with the average moves remaining of Games"""
         games = Game.query(Game.game_over == False).fetch()
@@ -317,4 +333,5 @@ class GuessANumberApi(remote.Service):
             average = float(total_attempts_remaining)/count
             memcache.set(MEMCACHE_MOVES_REMAINING,
                          'The average moves remaining is {:.2f}'.format(average))
-api = endpoints.api_server([GuessANumberApi])
+
+api = endpoints.api_server([ConcentrationApi])
