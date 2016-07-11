@@ -111,7 +111,9 @@ class ConcentrationApi(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
 
         if not game:
-            endpoints.raiseE
+            raise endpoints.NotFoundException(
+                    'Sorry this game does not exist!'
+                        ' Might be canceled previously')
         if game.game_over:
             return game.to_form('Game already over!')
 
