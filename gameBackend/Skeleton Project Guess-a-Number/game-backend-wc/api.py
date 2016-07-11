@@ -187,14 +187,10 @@ class ConcentrationApi(remote.Service):
                       name='get_user_rankings',
                       http_method='GET')
     def get_user_rankings(self, request):
-        """First, come up with a metric for ranking players.
-            For "Guess a Number" this could be by winning percentage with
-            ties broken by the average number of guesses.
-
-           Then create an endpoint called get_user_rankings that returns
-           all players ranked by performance. The results should include
-           each Player's name and the 'performance' indicator
-           (eg. win/loss ratio).
+        """
+        rank user by how many games won, each won game worth 1 point
+        on the leaderboard, get and set rank/score info in memcache
+        for fast retriving
         """
         user_rank = memcache.get(request.user_name)
         if user_rank is not None:
@@ -211,7 +207,11 @@ class ConcentrationApi(remote.Service):
                       name='get_user_scores',
                       http_method='GET')
     def get_user_scores(self, request):
-        """Returns all of an individual User's scores"""
+        """
+        Returns all of an individual User's scores
+        get and set rank/score info in memcache
+        for fast retriving
+        """
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
@@ -229,7 +229,7 @@ class ConcentrationApi(remote.Service):
 
     @endpoints.method(request_message=USER_REQUEST,#need to change
                       response_message=GameForms,
-                      path='scores/user/{user_name}',
+                      path='game/user/{user_name}',
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
@@ -248,10 +248,9 @@ class ConcentrationApi(remote.Service):
                       name='cancel_game',
                       http_method='GET')
     def cancel_game(self, request):
-        """This endpoint allows users to cancel a game in progress.
-        You could implement this by deleting the Game model itself,
-        or add a Boolean field such as 'cancelled' to the model.
-        Ensure that Users are not permitted to remove completed games."""
+        """
+        This endpoint allows users to cancel a game in progress.
+        """
         msg = StringMessage()
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         user = User.query(User.name == request.user_name).get()
