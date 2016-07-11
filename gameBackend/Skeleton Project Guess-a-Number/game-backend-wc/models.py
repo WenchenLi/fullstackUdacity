@@ -53,8 +53,8 @@ class Game(ndb.Model):
         game = Game(user=user,
                     target=content_generator(pair_count),
                     current_state = ['']*(pair_count*2),
-                    attempts_allowed=attempts,
-                    attempts_remaining=attempts,
+                    attempts_allowed=pair_count*2,
+                    attempts_remaining=pair_count*2,
                     game_over=False,
                     parent=user,
                     current_message="",
@@ -144,7 +144,7 @@ class Score(ndb.Model):
                          date=str(self.date), guesses=self.guesses)
 
 class GameStateForm(messages.Message):
-    """GameHistoryForm for outbound game state information"""
+    """GameStateForm for outbound game state information"""
     guessed_strings = messages.StringField(1, repeated=True)
     current_state = messages.StringField(2, repeated=True)
     message = messages.StringField(3, required=True)
@@ -153,6 +153,7 @@ class GameStateForm(messages.Message):
 
 
 class GameHistoryForm(messages.Message):
+    """GameHistoryForm for outbound game state information"""
     items = messages.MessageField(GameStateForm, 1, repeated=True)
 
 class GameForm(messages.Message):
@@ -166,6 +167,7 @@ class GameForm(messages.Message):
     guessed_strings = messages.StringField(7,repeated=True)
 
 class GameForms(messages.Message):
+    """GameForms for outbound game state information"""
     items = messages.MessageField(GameForm, 1, repeated=True)
 
 class NewGameForm(messages.Message):
@@ -177,7 +179,7 @@ class NewGameForm(messages.Message):
 
 class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
-    guess = messages.IntegerField(1, repeated=True)#TODO todo required might not be used
+    guess = messages.IntegerField(1, repeated=True)
 
 class UserRankForm(messages.Message):
     """UserScoreForm for outbound Score information"""

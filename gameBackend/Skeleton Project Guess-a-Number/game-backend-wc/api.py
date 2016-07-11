@@ -40,6 +40,7 @@ LEADERBOARD_REQUEST = endpoints.ResourceContainer(
         top_k=messages.IntegerField(1,default=10),)
 
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
+MEMCACHE_LEADERBOARD = 'LEADERBOARD'
 
 @endpoints.api(name='concentration', version='v1')
 class ConcentrationApi(remote.Service):
@@ -54,6 +55,11 @@ class ConcentrationApi(remote.Service):
         if User.query(User.name == request.user_name).get():
             raise endpoints.ConflictException(
                     'A User with that name already exists!')
+
+        if User.query(User.email == request.email).get():
+            raise endpoints.ConflictException(
+                    'A User with that email already exists!')
+
         user = User(name=request.user_name, email=request.email)
         user.put()
         return StringMessage(message='User {} created!'.format(
@@ -156,7 +162,7 @@ class ConcentrationApi(remote.Service):
         """Return all scores"""
         return ScoreForms(items=[score.to_form() for score in Score.query()])
 
-    @endpoints.method(request_message=LEADERBOARD_REQUEST,#need to change
+    @endpoints.method(request_message=LEADERBOARD_REQUEST,
                       response_message=UserScoreForms,
                       path='scores/leaderboard',
                       name='get_high_scores',
@@ -168,7 +174,7 @@ class ConcentrationApi(remote.Service):
         the number of results returned.
         """
         k = request.top_k
-        filtered_ct = memcache.get("leaderboard")
+        filtered_ct = memcache.get(MEMCACHE_LEADERBOARD)
 
         if filtered_ct is not None:
             data = UserScoreForms(items=[UserScoreForm(
@@ -190,7 +196,7 @@ class ConcentrationApi(remote.Service):
         """
         rank user by how many games won, each won game worth 1 point
         on the leaderboard, get and set rank/score info in memcache
-        for fast retriving
+        for fast retriving.
         """
         user_rank = memcache.get(request.user_name)
         if user_rank is not None:
@@ -233,9 +239,7 @@ class ConcentrationApi(remote.Service):
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
-        """Return all of a User's active games. hint You may want to modify the
-         User and Game models to simplify this type of query. Hint: it might
-         make sense for each game to be a descendant of a User."""
+        """Return all of a User's active games."""
         user = User.query(User.name == request.user_name).get()
         games = Game.query(Game.game_over == False)
 
@@ -249,7 +253,7 @@ class ConcentrationApi(remote.Service):
                       http_method='GET')
     def cancel_game(self, request):
         """
-        This endpoint allows users to cancel a game in progress.
+        allows users to cancel a game in progress.
         """
         msg = StringMessage()
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -272,7 +276,7 @@ class ConcentrationApi(remote.Service):
                       http_method='GET')
     def get_game_history(self, request):
         """
-        retrive game history for each round
+        retrieve game history for each round
         """
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
@@ -299,7 +303,7 @@ class ConcentrationApi(remote.Service):
             rank_dict,
             time=1200
         )
-        memcache.add(key="leaderboard", value=filtered_ct, time=1200)
+        memcache.add(key=MEMCACHE_LEADERBOARD, value=filtered_ct, time=1200)
 
         return filtered_ct,rank_dict
 

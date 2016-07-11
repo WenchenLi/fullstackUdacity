@@ -1,18 +1,24 @@
-I'll implement concentration.
-my idea is each game board is represented by a x by y matrix that the user can
+The game implemented is concentration.
+my idea is each game board is represented by an array that the user can
 specify.
-for the content: each entry in the matrix is a combination of english chars and
-numbers with maximum length of given value z
+for the content: each element in the array is a combination of english chars and
+numbers with maximum length of 10
 
-The objective of the user is to flip all the entry in the matrix with minimum
-number of attempts( more punishment can be implemented later like if flip but get
-error more times at the same entry, gets more punishment)
+The objective of the user is to flip all the entry in the array with minimum
+number of attempts. Currently the maximum attempts is 2 times of the length of
+the pairs in the array, so length of the array.
 
-my extra idea for the extra is implement an ai try to build a memory mechanism
-by itself.
+(UNDER development)
+my extra idea for the extra is implement an AI try to build a memory mechanism
+by itself to play to game. And then play against human.
+
+task queue push: this is used to keep records of the active games
+memcache: this is used to fast retrieve leaderboard information like user ranking
+and user score.
+
 
 game:
-cron tasks: notify user only their game hasnt finished
+cron tasks: notify user only their game hasn't finished
 task queue: push (app engine works on the url specified jobs)
             pull ( external workers like other api url works on the job get result within a lease time)
 
